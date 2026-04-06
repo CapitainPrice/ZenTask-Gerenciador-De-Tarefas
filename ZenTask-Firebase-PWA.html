@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ZenTask Pro - Organizador de Tarefas com Streak</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='12' fill='%238b5cf6'/%3E%3Cpath d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' fill='none' stroke='%23fff' stroke-width='2'/%3E%3C/svg%3E">
     <link rel="manifest" href="manifest.json">
@@ -23,18 +23,24 @@
     }
     </script>
 
-    <!-- EmailJS SDK para envio real de e-mails -->
+    <!-- EmailJS para notificações reais por email -->
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <script>
-      window.EMAILJS_PUBLIC_KEY  = 'SUA_PUBLIC_KEY';
-      window.EMAILJS_SERVICE_ID  = 'SUA_SERVICE_ID';
-      window.EMAILJS_TEMPLATE_ID = 'SUA_TEMPLATE_ID';
-      if (window.EMAILJS_PUBLIC_KEY !== 'SUA_PUBLIC_KEY') {
-        emailjs.init(window.EMAILJS_PUBLIC_KEY);
-        window.EMAILJS_CONFIGURED = true;
-      } else {
-        window.EMAILJS_CONFIGURED = false;
-      }
+    // ══════════════════════════════════════════════════════════
+    //  EMAILJS CONFIG — Crie conta GRATUITA em emailjs.com
+    //  e substitua os 3 valores abaixo:
+    //  1. Acesse emailjs.com → Account → API Keys → Public Key
+    //  2. Email Services → Add New Service → Gmail → copie Service ID
+    //  3. Email Templates → Create Template (use variáveis abaixo)
+    //     → copie Template ID
+    //
+    //  Variáveis no template EmailJS:
+    //  {{to_email}}  {{to_name}}  {{task_name}}
+    //  {{deadline}}  {{category}} {{priority}} {{alert_type}}
+    // ══════════════════════════════════════════════════════════
+    window.EMAILJS_PUBLIC_KEY  = 'SUA_PUBLIC_KEY';   // ex: 'user_abc123'
+    window.EMAILJS_SERVICE_ID  = 'SUA_SERVICE_ID';   // ex: 'service_gmail'
+    window.EMAILJS_TEMPLATE_ID = 'SUA_TEMPLATE_ID';  // ex: 'template_prazo'
     </script>
 
     <!-- Firebase SDK -->
@@ -47,15 +53,14 @@
       //  🔥 CREDENCIAIS DO FIREBASE
       // ============================================================
       const firebaseConfig = {
-        apiKey: "AIzaSyAVSnWAGwNdfzM92hFSHHE1ZYx9Qa-1bdE",
-        authDomain: "zentask-firebase.firebaseapp.com",
-        databaseURL: "https://zentask-firebase-default-rtdb.firebaseio.com",
-        projectId: "zentask-firebase",
-        storageBucket: "zentask-firebase.firebasestorage.app",
-        messagingSenderId: "912525998628",
-        appId: "1:912525998628:web:a9be0680d953f4f2c776b1",
-        measurementId: "G-4Z7JCJB6Q8"
-        };
+        apiKey:            "AIzaSyB8-m7ZCp1_vR7Na3Z_TFvcaTqrTC_s04I",
+        authDomain:        "zentask-99f1e.firebaseapp.com",
+        databaseURL:       "https://zentask-99f1e-default-rtdb.firebaseio.com",
+        projectId:         "zentask-99f1e",
+        storageBucket:     "zentask-99f1e.firebasestorage.app",
+        messagingSenderId: "951207615110",
+        appId:             "1:951207615110:web:d2c43c55573b287d6e4f07"
+      };
 
       const app      = initializeApp(firebaseConfig);
       const db       = getDatabase(app);
@@ -1814,26 +1819,6 @@ input[type="time"] {
 }
 .skip-login-btn:hover { color: var(--zen-primary); }
 
-
-    /* PWA e Debug */
-    .pwa-install-btn { display: none; align-items: center; gap: 8px; margin-top: 8px; padding: 10px 20px; background: linear-gradient(135deg, var(--zen-primary) 0%, var(--zen-primary-light) 100%); border: none; border-radius: 20px; color: white; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 15px rgba(139,92,246,0.3); animation: installPulse 2s infinite; }
-    @keyframes installPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
-    .pwa-install-btn.show { display: inline-flex; }
-    .pwa-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; align-items: flex-end; justify-content: center; }
-    .pwa-modal.show { display: flex; }
-    .pwa-modal-content { background: var(--zen-card); border-radius: 24px 24px 0 0; padding: 24px 24px 40px; width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 16px; animation: slideUp 0.3s; color: var(--zen-text); }
-    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-    .pwa-modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-    
-    @media (max-width: 480px) {
-        .edit-modal, .category-modal { align-items: flex-end !important; padding: 0 !important; }
-        .edit-modal-content, .category-modal-content { border-radius: 24px 24px 0 0 !important; width: 100% !important; max-height: 90vh !important; }
-        .zen-task-item { flex-wrap: wrap !important; }
-        .zen-task-actions { width: 100% !important; justify-content: flex-end !important; margin-top: 8px !important; }
-        .app-header { padding: 20px 16px !important; }
-        .streak-container { padding: 12px !important; }
-    }
-
 </style>
 
 </head>
@@ -2213,232 +2198,114 @@ input[type="time"] {
     </div>
 
     <!-- TOAST DE NOTIFICAÇÃO -->
-        <!-- MODAL DE INSTALAÇÃO PWA -->
-    <div class="pwa-modal" id="pwaModal">
-        <div class="pwa-modal-content">
-            <div class="pwa-modal-header">
-                <h3 style="margin:0;">🚀 Instalar ZenTask Pro</h3>
-                <button class="pwa-modal-close" id="pwaModalClose" style="border:none;background:none;font-size:20px;cursor:pointer;">✕</button>
-            </div>
-            <div id="pwaStepsAndroid" style="display:none;flex-direction:column;gap:10px;">
-                <p>1. Toque em <strong>"Instalar"</strong> abaixo.</p>
-                <button class="pwa-download-btn" id="pwaAndroidInstallBtn" style="padding:12px;background:#8b5cf6;color:white;border:none;border-radius:10px;font-weight:bold;">🚀 Instalar Agora</button>
-            </div>
-            <div id="pwaStepsIOS" style="display:none;flex-direction:column;gap:10px;">
-                <p>1. Toque no ícone <strong>⬆️ Compartilhar</strong> (Safari).</p>
-                <p>2. Toque em <strong>"Adicionar à Tela de Início"</strong>.</p>
-            </div>
-        </div>
-    </div>
     <div class="toast" id="toast">
         <span class="toast-icon" id="toastIcon"></span>
         <span class="toast-message" id="toastMessage"></span>
     </div>
 
     <script>
-    
     (function() {
         'use strict';
-        
-        const lista = document.getElementById('listaTarefas');
-        const emptyState = document.getElementById('emptyState');
-        const inputTarefa = document.getElementById('inputTarefa');
-        const addBtn = document.getElementById('addBtn');
-        const totalTasksEl = document.getElementById('totalTasks');
-        const completedTasksEl = document.getElementById('completedTasks');
-        const pendingTasksEl = document.getElementById('pendingTasks');
-        const streakCountEl = document.getElementById('streakCount');
-        const streakStatusEl = document.getElementById('streakStatus');
 
-        let tarefas = JSON.parse(localStorage.getItem('tarefasZenUltimate') || '[]');
-        let categorias = JSON.parse(localStorage.getItem('categoriasZenUltimate') || '[{"id":"casa","nome":"Casa","cor":"#ec4899"},{"id":"trabalho","nome":"Trabalho","cor":"#3b82f6"},{"id":"pessoal","nome":"Pessoal","cor":"#8b5cf6"},{"id":"estudos","nome":"Estudos","cor":"#f59e0b"}]');
-        let streak = JSON.parse(localStorage.getItem('streakZenUltimate') || '{"count":0,"lastCompletionDate":null}');
-        let currentUser = null;
-        let _fbListenersActive = false;
-        let _primeiraSync = true;
+        // Variavel para controlar o contexto de audio
+        var audioContext = null;
 
-        function addDebugLog(msg, type) {
-            console.log('[DEBUG]', msg);
-            const linesEl = document.getElementById('debugLines');
-            const consoleEl = document.getElementById('debugConsole');
-            if (linesEl && consoleEl) {
-                consoleEl.style.display = 'block';
-                const line = document.createElement('div');
-                line.style.color = type === 'error' ? '#ff4444' : '#00ff00';
-                line.style.fontSize = '10px';
-                line.style.borderBottom = '1px solid #333';
-                line.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
-                linesEl.prepend(line);
+        // Cores predefinidas para categorias
+        var categoryColors = [
+            '#ec4899', '#3b82f6', '#8b5cf6', '#f59e0b',
+            '#10b981', '#ef4444', '#06b6d4', '#84cc16',
+            '#f97316', '#6366f1', '#14b8a6', '#a855f7'
+        ];
+
+        // Função para inicializar o contexto de audio
+        function initAudioContext() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
             }
+            return audioContext;
         }
 
-        function mostrarToast(mensagem, icone) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toastIcon').innerHTML = icone || '✅';
-            document.getElementById('toastMessage').textContent = mensagem;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
-        }
-
-        function getFirebase() { return window._firebase; }
-        function userPath(sub) { return 'users/' + currentUser.uid + '/' + sub; }
-
-        function mergeOfflineTasks(cloudTasks) {
-            const localTasks = JSON.parse(localStorage.getItem('tarefasZenUltimate') || '[]');
-            if (!localTasks.length) return cloudTasks;
-            const cloudIds = new Set(cloudTasks.map(t => String(t.id)));
-            const offlineOnly = localTasks.filter(t => !cloudIds.has(String(t.id)));
-            if (offlineOnly.length > 0) {
-                const merged = offlineOnly.concat(cloudTasks);
-                const fb = getFirebase();
-                fb.set(fb.ref(fb.db, userPath('tarefas')), merged).catch(e => console.error(e));
-                mostrarToast(offlineOnly.length + ' tarefas sincronizadas!', '☁️');
-                return merged;
-            }
-            return cloudTasks;
-        }
-
-        function setupFirebaseListeners() {
-            if (_fbListenersActive) return;
-            _fbListenersActive = true;
-            const fb = getFirebase();
-            fb.onValue(fb.ref(fb.db, userPath('tarefas')), snap => {
-                const data = snap.val();
-                let cloudTasks = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
-                if (_primeiraSync) { _primeiraSync = false; cloudTasks = mergeOfflineTasks(cloudTasks); }
-                tarefas = cloudTasks;
-                localStorage.setItem('tarefasZenUltimate', JSON.stringify(tarefas));
-                renderizar(); atualizarStreak();
-            });
-            fb.onValue(fb.ref(fb.db, userPath('streak')), snap => {
-                const data = snap.val();
-                if (data) { streak = data; localStorage.setItem('streakZenUltimate', JSON.stringify(streak)); renderizarStreak(); }
-            });
-        }
-
-        function handleAuth() {
-            const fb = getFirebase();
-            if (!fb) return setTimeout(handleAuth, 500);
-            const isMobile = /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent);
-            
-            fb.onAuthStateChanged(fb.auth, user => {
-                addDebugLog('Auth: ' + (user ? 'Logado' : 'Deslogado'));
-                if (!user && sessionStorage.getItem('fb_redirecting') === 'true') return;
-                if (user) {
-                    sessionStorage.removeItem('fb_redirecting');
-                    currentUser = user;
-                    document.getElementById('loginScreen').classList.remove('show');
-                    document.getElementById('userInfo').classList.add('show');
-                    document.getElementById('userAvatar').src = user.photoURL || '';
-                    document.getElementById('userName').textContent = user.displayName ? user.displayName.split(' ')[0] : user.email.split('@')[0];
-                    setupFirebaseListeners();
-                } else {
-                    document.getElementById('loginScreen').classList.add('show');
-                    document.getElementById('userInfo').classList.remove('show');
+        // Função para tocar sons usando Web Audio API
+        function playSound(type) {
+            try {
+                var ctx = initAudioContext();
+                if (ctx.state === 'suspended') {
+                    ctx.resume();
                 }
-            });
 
-            fb.getRedirectResult(fb.auth).then(res => {
-                sessionStorage.removeItem('fb_redirecting');
-                if (res) addDebugLog('Login Sucesso');
-            }).catch(e => {
-                sessionStorage.removeItem('fb_redirecting');
-                addDebugLog('Erro: ' + e.code, 'error');
-                if (e.code === 'auth/unauthorized-domain') alert('Adicione ' + location.hostname + ' nos domínios do Firebase!');
-            });
+                var oscillator = ctx.createOscillator();
+                var gainNode = ctx.createGain();
 
-            document.getElementById('googleLoginBtn').onclick = () => {
-                if (isMobile) { sessionStorage.setItem('fb_redirecting', 'true'); fb.signInWithRedirect(fb.auth, fb.provider); }
-                else fb.signInWithPopup(fb.auth, fb.provider).catch(e => addDebugLog(e.code, 'error'));
-            };
-            document.getElementById('logoutBtn').onclick = () => fb.signOut(fb.auth).then(() => location.reload());
-            document.getElementById('skipLoginBtn').onclick = () => document.getElementById('loginScreen').classList.remove('show');
-        }
+                oscillator.connect(gainNode);
+                gainNode.connect(ctx.destination);
 
-        function salvar() {
-            localStorage.setItem('tarefasZenUltimate', JSON.stringify(tarefas));
-            const fb = getFirebase();
-            if (fb && currentUser) fb.set(fb.ref(fb.db, userPath('tarefas')), tarefas).catch(e => console.error(e));
-        }
-
-        function renderizar() {
-            lista.innerHTML = '';
-            if (!tarefas.length) emptyState.classList.add('show');
-            else emptyState.classList.remove('show');
-
-            tarefas.forEach(t => {
-                const li = document.createElement('li');
-                li.className = 'zen-task-item' + (t.concluida ? ' completed' : '');
-                const cat = categorias.find(c => c.id === t.categoria) || categorias[0];
-                li.innerHTML = `
-                    <label class="zen-checkbox"><input type="checkbox" ${t.concluida ? 'checked' : ''}><span class="zen-checkmark"></span></label>
-                    <div class="zen-task-content">
-                        <span class="zen-task-text">${t.texto}</span>
-                        <div class="zen-task-meta"><span class="zen-category-badge" style="background:${cat.cor}20;color:${cat.cor}">${cat.nome}</span></div>
-                    </div>
-                    <div class="zen-task-actions"><button class="zen-task-btn del-btn" style="border:none;background:none;cursor:pointer;font-size:18px;">🗑️</button></div>
-                `;
-                li.querySelector('input').onchange = () => { t.concluida = !t.concluida; t.completedAt = t.concluida ? new Date().toISOString() : null; salvar(); renderizar(); atualizarStreak(); };
-                li.querySelector('.del-btn').onclick = () => { tarefas = tarefas.filter(x => x.id !== t.id); salvar(); renderizar(); };
-                lista.appendChild(li);
-            });
-            updateStats();
-        }
-
-        function updateStats() {
-            totalTasksEl.textContent = tarefas.length;
-            completedTasksEl.textContent = tarefas.filter(t => t.concluida).length;
-            pendingTasksEl.textContent = tarefas.filter(t => !t.concluida).length;
-        }
-
-        function atualizarStreak() {
-            const hoje = new Date().toDateString();
-            const doneToday = tarefas.some(t => t.concluida && t.completedAt && new Date(t.completedAt).toDateString() === hoje);
-            if (doneToday && streak.lastCompletionDate !== hoje) {
-                const ontem = new Date(Date.now() - 86400000).toDateString();
-                streak.count = (streak.lastCompletionDate === ontem) ? streak.count + 1 : 1;
-                streak.lastCompletionDate = hoje;
-                salvarStreak();
+                switch(type) {
+                    case 'add':
+                        oscillator.frequency.setValueAtTime(523.25, ctx.currentTime);
+                        oscillator.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1);
+                        gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                        oscillator.start(ctx.currentTime);
+                        oscillator.stop(ctx.currentTime + 0.3);
+                        break;
+                    case 'check':
+                        oscillator.frequency.setValueAtTime(392, ctx.currentTime);
+                        oscillator.frequency.setValueAtTime(523.25, ctx.currentTime + 0.1);
+                        oscillator.frequency.setValueAtTime(659.25, ctx.currentTime + 0.2);
+                        oscillator.frequency.setValueAtTime(783.99, ctx.currentTime + 0.3);
+                        gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+                        oscillator.start(ctx.currentTime);
+                        oscillator.stop(ctx.currentTime + 0.5);
+                        break;
+                    case 'streak':
+                        oscillator.frequency.setValueAtTime(523.25, ctx.currentTime);
+                        oscillator.frequency.setValueAtTime(659.25, ctx.currentTime + 0.15);
+                        oscillator.frequency.setValueAtTime(783.99, ctx.currentTime + 0.3);
+                        oscillator.frequency.setValueAtTime(1046.50, ctx.currentTime + 0.45);
+                        gainNode.gain.setValueAtTime(0.4, ctx.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.7);
+                        oscillator.start(ctx.currentTime);
+                        oscillator.stop(ctx.currentTime + 0.7);
+                        break;
+                    case 'delete':
+                        oscillator.frequency.setValueAtTime(440, ctx.currentTime);
+                        oscillator.frequency.exponentialRampToValueAtTime(110, ctx.currentTime + 0.3);
+                        gainNode.gain.setValueAtTime(0.2, ctx.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                        oscillator.start(ctx.currentTime);
+                        oscillator.stop(ctx.currentTime + 0.3);
+                        break;
+                }
+            } catch(e) {
+                // Falha silenciosa se audio não for suportado
             }
-            renderizarStreak();
         }
 
-        function salvarStreak() {
-            localStorage.setItem('streakZenUltimate', JSON.stringify(streak));
-            const fb = getFirebase();
-            if (fb && currentUser) fb.set(fb.ref(fb.db, userPath('streak')), streak).catch(e => console.error(e));
-        }
+        // Elementos do DOM
+        var input = document.getElementById('tarefaInput');
+        var btn = document.getElementById('adicionarBtn');
+        var lista = document.getElementById('listaTarefas');
+        var emptyState = document.getElementById('emptyState');
+        var dataLimiteInput = document.getElementById('dataLimite');
+        var horaHHSelect = document.getElementById('horaHH');
+        var horaMМSelect = document.getElementById('horaMM');
 
-        function renderizarStreak() {
-            document.getElementById('streakCount').textContent = streak.count;
-        }
-
-        function setupPWA() {
-            const pwaBtn = document.getElementById('pwaInstallBtn');
-            const pwaModal = document.getElementById('pwaModal');
-            let deferredPrompt;
-            window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; pwaBtn.classList.add('show'); });
-            pwaBtn.onclick = () => {
-                const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-                if (isIOS) document.getElementById('pwaStepsIOS').style.display = 'flex';
-                else document.getElementById('pwaStepsAndroid').style.display = 'flex';
-                pwaModal.classList.add('show');
-            };
-            document.getElementById('pwaModalClose').onclick = () => pwaModal.classList.remove('show');
-            document.getElementById('pwaAndroidInstallBtn').onclick = () => { if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.then(() => pwaModal.classList.remove('show')); } };
-        }
-
-        addBtn.onclick = () => {
-            const txt = inputTarefa.value.trim();
-            if (!txt) return;
-            const cat = document.querySelector('input[name="categoria"]:checked').value;
-            tarefas.unshift({ id: Date.now(), texto: txt, concluida: false, categoria: cat, createdAt: new Date().toISOString() });
-            inputTarefa.value = ''; salvar(); renderizar();
-        };
-
-        handleAuth(); setupPWA(); renderizar(); atualizarStreak();
-    })();
-
+        // Preencher selects de hora e minuto
+        (function() {
+            for (var h = 0; h < 24; h++) {
+                var opt = document.createElement('option');
+                opt.value = String(h).padStart(2, '0');
+                opt.textContent = String(h).padStart(2, '0');
+                horaHHSelect.appendChild(opt);
+            }
+            for (var m = 0; m < 60; m++) {
+                var opt2 = document.createElement('option');
+                opt2.value = String(m).padStart(2, '0');
+                opt2.textContent = String(m).padStart(2, '0');
+                horaMМSelect.appendChild(opt2);
+            }
+        })();
 
         function getHoraLimiteValue() {
             return horaHHSelect.value + ':' + horaMМSelect.value;
@@ -2509,209 +2376,556 @@ input[type="time"] {
             renderizar();
             atualizarStreak();
 
-            setInterval
-    (function() {
-        'use strict';
-        
-        const lista = document.getElementById('listaTarefas');
-        const emptyState = document.getElementById('emptyState');
-        const inputTarefa = document.getElementById('inputTarefa');
-        const addBtn = document.getElementById('addBtn');
-        const totalTasksEl = document.getElementById('totalTasks');
-        const completedTasksEl = document.getElementById('completedTasks');
-        const pendingTasksEl = document.getElementById('pendingTasks');
-        const streakCountEl = document.getElementById('streakCount');
-        const streakStatusEl = document.getElementById('streakStatus');
+            setInterval(function() { verificarTarefasAtrasadas(); }, 60000);
 
-        let tarefas = JSON.parse(localStorage.getItem('tarefasZenUltimate') || '[]');
-        let categorias = JSON.parse(localStorage.getItem('categoriasZenUltimate') || '[{"id":"casa","nome":"Casa","cor":"#ec4899"},{"id":"trabalho","nome":"Trabalho","cor":"#3b82f6"},{"id":"pessoal","nome":"Pessoal","cor":"#8b5cf6"},{"id":"estudos","nome":"Estudos","cor":"#f59e0b"}]');
-        let streak = JSON.parse(localStorage.getItem('streakZenUltimate') || '{"count":0,"lastCompletionDate":null}');
-        let currentUser = null;
-        let _fbListenersActive = false;
-        let _primeiraSync = true;
-
-        function addDebugLog(msg, type) {
-            console.log('[DEBUG]', msg);
-            const linesEl = document.getElementById('debugLines');
-            const consoleEl = document.getElementById('debugConsole');
-            if (linesEl && consoleEl) {
-                consoleEl.style.display = 'block';
-                const line = document.createElement('div');
-                line.style.color = type === 'error' ? '#ff4444' : '#00ff00';
-                line.style.fontSize = '10px';
-                line.style.borderBottom = '1px solid #333';
-                line.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
-                linesEl.prepend(line);
+            // ── PWA: Service Worker para offline real ──────────────
+            if ('serviceWorker' in navigator) {
+                var swCode = [
+                    'var CACHE="zentask-v3";',
+                    'self.addEventListener("install",function(e){e.waitUntil(caches.open(CACHE).then(function(c){return c.addAll([location.pathname]);}).then(function(){return self.skipWaiting();}));});',
+                    'self.addEventListener("activate",function(e){e.waitUntil(caches.keys().then(function(ks){return Promise.all(ks.filter(function(k){return k!==CACHE;}).map(function(k){return caches.delete(k);}));}).then(function(){return self.clients.claim();}));});',
+                    'self.addEventListener("fetch",function(e){if(!e.request.url.startsWith(self.location.origin))return;e.respondWith(fetch(e.request).then(function(r){var c=r.clone();caches.open(CACHE).then(function(cache){cache.put(e.request,c);});return r;}).catch(function(){return caches.match(e.request);}));});'
+                ].join('');
+                var blob = new Blob([swCode], {type:'application/javascript'});
+                var swUrl = URL.createObjectURL(blob);
+                navigator.serviceWorker.register(swUrl).catch(function(){});
             }
-        }
 
-        function mostrarToast(mensagem, icone) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toastIcon').innerHTML = icone || '✅';
-            document.getElementById('toastMessage').textContent = mensagem;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
-        }
+            // ── PWA: botão de instalação (Android + iOS) ──────────
+            var pwaBtn = document.getElementById('pwaInstallBtn');
+            var deferredPrompt = null;
+            var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+            var isAndroid = /android/i.test(navigator.userAgent);
+            var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 
-        function getFirebase() { return window._firebase; }
-        function userPath(sub) { return 'users/' + currentUser.uid + '/' + sub; }
-
-        function mergeOfflineTasks(cloudTasks) {
-            const localTasks = JSON.parse(localStorage.getItem('tarefasZenUltimate') || '[]');
-            if (!localTasks.length) return cloudTasks;
-            const cloudIds = new Set(cloudTasks.map(t => String(t.id)));
-            const offlineOnly = localTasks.filter(t => !cloudIds.has(String(t.id)));
-            if (offlineOnly.length > 0) {
-                const merged = offlineOnly.concat(cloudTasks);
-                const fb = getFirebase();
-                fb.set(fb.ref(fb.db, userPath('tarefas')), merged).catch(e => console.error(e));
-                mostrarToast(offlineOnly.length + ' tarefas sincronizadas!', '☁️');
-                return merged;
+            // Mostra botão no iOS (não tem beforeinstallprompt)
+            if (isIOS && !isStandalone) {
+                pwaBtn.classList.add('show');
             }
-            return cloudTasks;
-        }
+            // No Android Samsung, mostra botão antecipadamente
+            if (isAndroid && !isStandalone) {
+                pwaBtn.classList.add('show');
+            }
 
-        function setupFirebaseListeners() {
-            if (_fbListenersActive) return;
-            _fbListenersActive = true;
-            const fb = getFirebase();
-            fb.onValue(fb.ref(fb.db, userPath('tarefas')), snap => {
-                const data = snap.val();
-                let cloudTasks = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
-                if (_primeiraSync) { _primeiraSync = false; cloudTasks = mergeOfflineTasks(cloudTasks); }
-                tarefas = cloudTasks;
-                localStorage.setItem('tarefasZenUltimate', JSON.stringify(tarefas));
-                renderizar(); atualizarStreak();
+            window.addEventListener('beforeinstallprompt', function(e) {
+                e.preventDefault();
+                deferredPrompt = e;
+                pwaBtn.classList.add('show');
             });
-            fb.onValue(fb.ref(fb.db, userPath('streak')), snap => {
-                const data = snap.val();
-                if (data) { streak = data; localStorage.setItem('streakZenUltimate', JSON.stringify(streak)); renderizarStreak(); }
-            });
-        }
 
-        function handleAuth() {
-            const fb = getFirebase();
-            if (!fb) return setTimeout(handleAuth, 500);
-            const isMobile = /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent);
-            
-            fb.onAuthStateChanged(fb.auth, user => {
-                addDebugLog('Auth: ' + (user ? 'Logado' : 'Deslogado'));
-                if (!user && sessionStorage.getItem('fb_redirecting') === 'true') return;
-                if (user) {
-                    sessionStorage.removeItem('fb_redirecting');
-                    currentUser = user;
-                    document.getElementById('loginScreen').classList.remove('show');
-                    document.getElementById('userInfo').classList.add('show');
-                    document.getElementById('userAvatar').src = user.photoURL || '';
-                    document.getElementById('userName').textContent = user.displayName ? user.displayName.split(' ')[0] : user.email.split('@')[0];
-                    setupFirebaseListeners();
-                } else {
-                    document.getElementById('loginScreen').classList.add('show');
-                    document.getElementById('userInfo').classList.remove('show');
+            pwaBtn.addEventListener('click', function() {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then(function() {
+                        deferredPrompt = null;
+                        pwaBtn.classList.remove('show');
+                    });
+                } else if (isIOS && !isStandalone) {
+                    alert('Para instalar no iPhone/iPad:\n\n1. Toque no ícone ⬆️ (compartilhar) na barra do Safari\n2. Selecione "Adicionar à Tela de Início"\n3. Toque em "Adicionar"');
+                } else if (isAndroid) {
+                    alert('Para instalar no Android:\n\n1. Toque nos 3 pontos ⋮ no canto superior do Chrome\n2. Selecione "Adicionar à tela inicial"\n3. Confirme tocando em "Adicionar"');
                 }
             });
 
-            fb.getRedirectResult(fb.auth).then(res => {
-                sessionStorage.removeItem('fb_redirecting');
-                if (res) addDebugLog('Login Sucesso');
-            }).catch(e => {
-                sessionStorage.removeItem('fb_redirecting');
-                addDebugLog('Erro: ' + e.code, 'error');
-                if (e.code === 'auth/unauthorized-domain') alert('Adicione ' + location.hostname + ' nos domínios do Firebase!');
+            window.addEventListener('appinstalled', function() {
+                pwaBtn.classList.remove('show');
             });
 
-            document.getElementById('googleLoginBtn').onclick = () => {
-                if (isMobile) { sessionStorage.setItem('fb_redirecting', 'true'); fb.signInWithRedirect(fb.auth, fb.provider); }
-                else fb.signInWithPopup(fb.auth, fb.provider).catch(e => addDebugLog(e.code, 'error'));
-            };
-            document.getElementById('logoutBtn').onclick = () => fb.signOut(fb.auth).then(() => location.reload());
-            document.getElementById('skipLoginBtn').onclick = () => document.getElementById('loginScreen').classList.remove('show');
-        }
+            // ── Autenticação Firebase ──────────────────────────────
+            var fbWait = 0;
+            function tryInitAuth() {
+                var fb = getFirebase();
+                if (!fb) {
+                    fbWait++;
+                    if (fbWait < 30) { setTimeout(tryInitAuth, 300); }
+                    return;
+                }
+                if (!firebaseConfigured) {
+                    setSyncStatus('no-config', '⚙️ Firebase não configurado');
+                    return;
+                }
 
-        function salvar() {
-            localStorage.setItem('tarefasZenUltimate', JSON.stringify(tarefas));
-            const fb = getFirebase();
-            if (fb && currentUser) fb.set(fb.ref(fb.db, userPath('tarefas')), tarefas).catch(e => console.error(e));
-        }
+                // Botão de login Google (popup funciona em GitHub Pages)
+                document.getElementById('googleLoginBtn').addEventListener('click', function() {
+                    fb.signInWithPopup(fb.auth, fb.provider).catch(function(e) {
+                        if (e.code === 'auth/unauthorized-domain') {
+                            alert('⚠️ Domínio não autorizado no Firebase.\n\nAcesse:\nFirebase → Authentication → Settings → Domínios autorizados\n\nE adicione: ' + location.hostname);
+                        } else if (e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request') {
+                            alert('Erro ao fazer login: ' + e.message);
+                        }
+                    });
+                });
 
-        function renderizar() {
-            lista.innerHTML = '';
-            if (!tarefas.length) emptyState.classList.add('show');
-            else emptyState.classList.remove('show');
+                // Botão continuar sem login
+                document.getElementById('skipLoginBtn').addEventListener('click', function() {
+                    document.getElementById('loginScreen').classList.remove('show');
+                    setSyncStatus('offline', '📴 Modo offline');
+                    document.getElementById('loginPromptBtn').classList.remove('hidden');
+                });
 
-            tarefas.forEach(t => {
-                const li = document.createElement('li');
-                li.className = 'zen-task-item' + (t.concluida ? ' completed' : '');
-                const cat = categorias.find(c => c.id === t.categoria) || categorias[0];
-                li.innerHTML = `
-                    <label class="zen-checkbox"><input type="checkbox" ${t.concluida ? 'checked' : ''}><span class="zen-checkmark"></span></label>
-                    <div class="zen-task-content">
-                        <span class="zen-task-text">${t.texto}</span>
-                        <div class="zen-task-meta"><span class="zen-category-badge" style="background:${cat.cor}20;color:${cat.cor}">${cat.nome}</span></div>
-                    </div>
-                    <div class="zen-task-actions"><button class="zen-task-btn del-btn" style="border:none;background:none;cursor:pointer;font-size:18px;">🗑️</button></div>
-                `;
-                li.querySelector('input').onchange = () => { t.concluida = !t.concluida; t.completedAt = t.concluida ? new Date().toISOString() : null; salvar(); renderizar(); atualizarStreak(); };
-                li.querySelector('.del-btn').onclick = () => { tarefas = tarefas.filter(x => x.id !== t.id); salvar(); renderizar(); };
-                lista.appendChild(li);
-            });
-            updateStats();
-        }
+                // Botão entrar para sincronizar (modo offline)
+                document.getElementById('loginPromptBtn').addEventListener('click', function() {
+                    fb.signInWithPopup(fb.auth, fb.provider).catch(function(e) {
+                        if (e.code === 'auth/unauthorized-domain') {
+                            alert('⚠️ Adicione "' + location.hostname + '" nos domínios autorizados do Firebase:\nAuthentication → Settings → Domínios autorizados');
+                        } else if (e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request') {
+                            alert('Erro: ' + e.message);
+                        }
+                    });
+                });
 
-        function updateStats() {
-            totalTasksEl.textContent = tarefas.length;
-            completedTasksEl.textContent = tarefas.filter(t => t.concluida).length;
-            pendingTasksEl.textContent = tarefas.filter(t => !t.concluida).length;
-        }
+                // Botão de logout
+                document.getElementById('logoutBtn').addEventListener('click', function() {
+                    fb.signOut(fb.auth);
+                });
 
-        function atualizarStreak() {
-            const hoje = new Date().toDateString();
-            const doneToday = tarefas.some(t => t.concluida && t.completedAt && new Date(t.completedAt).toDateString() === hoje);
-            if (doneToday && streak.lastCompletionDate !== hoje) {
-                const ontem = new Date(Date.now() - 86400000).toDateString();
-                streak.count = (streak.lastCompletionDate === ontem) ? streak.count + 1 : 1;
-                streak.lastCompletionDate = hoje;
-                salvarStreak();
+                // Processa resultado do redirect (mobile após login Google)
+                fb.getRedirectResult(fb.auth).then(function(result) {
+                    // resultado já tratado pelo onAuthStateChanged
+                }).catch(function(e) {
+                    if (e.code === 'auth/unauthorized-domain') {
+                        alert('Adicione "' + location.hostname + '" nos domínios autorizados:\nFirebase → Authentication → Settings → Domínios autorizados');
+                    }
+                });
+
+                // Estado de autenticação
+                fb.onAuthStateChanged(fb.auth, function(user) {
+                    var loginScreen = document.getElementById('loginScreen');
+                    var userInfo = document.getElementById('userInfo');
+                    var userAvatar = document.getElementById('userAvatar');
+                    var userNameEl = document.getElementById('userName');
+
+                    if (user) {
+                        currentUser = user;
+                        loginScreen.classList.remove('show');
+                        userInfo.classList.add('show');
+                        userAvatar.src = user.photoURL || '';
+                        userNameEl.textContent = user.displayName ? user.displayName.split(' ')[0] : user.email;
+                        document.getElementById('loginPromptBtn').classList.add('hidden');
+                        setupFirebaseListeners(fb);
+                    } else {
+                        currentUser = null;
+                        _fbListenersActive = false;
+                        loginScreen.classList.add('show');
+                        userInfo.classList.remove('show');
+                        setSyncStatus('connecting', 'Faça login para sincronizar');
+                    }
+                });
             }
-            renderizarStreak();
+            setTimeout(tryInitAuth, 400);
         }
 
-        function salvarStreak() {
-            localStorage.setItem('streakZenUltimate', JSON.stringify(streak));
-            const fb = getFirebase();
-            if (fb && currentUser) fb.set(fb.ref(fb.db, userPath('streak')), streak).catch(e => console.error(e));
+        // ── Listeners em tempo real do Firebase ───────────────────────
+        var _fbListenersActive = false;
+        var _ignoreNextUpdate = false; // evita loop de escrita→leitura
+
+        function setupFirebaseListeners(fb) {
+            if (_fbListenersActive) return;
+            _fbListenersActive = true;
+
+            setSyncStatus('connecting', 'Sincronizando...');
+
+            fb.onValue(fb.ref(fb.db, '.info/connected'), function(snap) {
+                if (snap.val() === true) {
+                    setSyncStatus('online', '☁️ Sincronizado');
+                } else {
+                    setSyncStatus('offline', '📴 Offline (dados salvos localmente)');
+                }
+            });
+
+            fb.onValue(fb.ref(fb.db, userPath('tarefas')), function(snap) {
+                if (_ignoreNextUpdate) { _ignoreNextUpdate = false; return; }
+                var data = snap.val();
+                if (data !== null) {
+                    // Firebase tem dados — usa do Firebase
+                    var remoteTarefas = Array.isArray(data) ? data : Object.values(data);
+                    // Merge: mantém tarefas locais que não existem no Firebase
+                    var localIds = new Set(remoteTarefas.map(function(t){ return t.id; }));
+                    var tarefasLocaisNaoSincronizadas = tarefas.filter(function(t){ return !localIds.has(t.id); });
+                    if (tarefasLocaisNaoSincronizadas.length > 0) {
+                        // Sobe tarefas locais para o Firebase
+                        tarefas = remoteTarefas.concat(tarefasLocaisNaoSincronizadas);
+                        fb.set(fb.ref(fb.db, userPath('tarefas')), tarefas).catch(function(){});
+                    } else {
+                        tarefas = remoteTarefas;
+                    }
+                } else if (tarefas.length > 0) {
+                    // Firebase vazio mas tem dados locais — sobe para o Firebase
+                    fb.set(fb.ref(fb.db, userPath('tarefas')), tarefas).catch(function(){});
+                }
+                localStorage.setItem('tarefasZenUltimate', JSON.stringify(tarefas));
+                renderizar();
+                atualizarStreak();
+            });
+
+            fb.onValue(fb.ref(fb.db, userPath('categorias')), function(snap) {
+                if (_ignoreNextUpdate) return;
+                var data = snap.val();
+                if (data !== null) {
+                    categorias = Array.isArray(data) ? data : Object.values(data);
+                    localStorage.setItem('categoriasZenUltimate', JSON.stringify(categorias));
+                    renderizarCategorias();
+                    renderizarCategoriasLista();
+                    renderizarCategoryFilters();
+                }
+            });
+
+            fb.onValue(fb.ref(fb.db, userPath('streak')), function(snap) {
+                if (_ignoreNextUpdate) return;
+                var data = snap.val();
+                if (data !== null) {
+                    streak = data;
+                    localStorage.setItem('streakZenUltimate', JSON.stringify(streak));
+                    renderizarStreak();
+                }
+            });
         }
 
-        function renderizarStreak() {
-            document.getElementById('streakCount').textContent = streak.count;
+        // Função para verificar e atualizar status de tarefas atrasadas
+        function verificarTarefasAtrasadas() {
+            var houveMudanca = false;
+            var now = new Date();
+
+            tarefas.forEach(function(tarefa) {
+                if (!tarefa.concluida && tarefa.dataLimite) {
+                    var deadline = new Date(tarefa.dataLimite + 'T' + (tarefa.horaLimite || '23:59'));
+                    if (now > deadline) {
+                        // Tarefa esta atrasada
+                        if (!tarefa.atrasada) {
+                            tarefa.atrasada = true;
+                            houveMudanca = true;
+                        }
+                    }
+                }
+            });
+
+            if (houveMudanca) {
+                salvar();
+                renderizar();
+                updateStats();
+            }
         }
 
-        function setupPWA() {
-            const pwaBtn = document.getElementById('pwaInstallBtn');
-            const pwaModal = document.getElementById('pwaModal');
-            let deferredPrompt;
-            window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; pwaBtn.classList.add('show'); });
-            pwaBtn.onclick = () => {
-                const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-                if (isIOS) document.getElementById('pwaStepsIOS').style.display = 'flex';
-                else document.getElementById('pwaStepsAndroid').style.display = 'flex';
-                pwaModal.classList.add('show');
+        function setupEventListeners() {
+            // Botão de adicionar tarefa
+            btn.addEventListener('click', adicionarTarefa);
+
+            // Tecla Enter para adicionar
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') adicionarTarefa();
+            });
+
+            // Botões de abas de filtro
+            filterBtns.forEach(function(filterBtn) {
+                filterBtn.addEventListener('click', function() {
+                    filterBtns.forEach(function(b) { b.classList.remove('active'); });
+                    filterBtn.classList.add('active');
+                    currentFilter = filterBtn.dataset.filter;
+                    renderizar();
+                });
+            });
+
+            // Botão gerenciar categorias
+            manageCategoriesBtnEl.addEventListener('click', function() {
+                categoryModalEl.classList.add('show');
+            });
+
+            // Fechar modal
+            closeModalBtnEl.addEventListener('click', function() {
+                categoryModalEl.classList.remove('show');
+            });
+
+            // Fechar modal ao clicar fora
+            categoryModalEl.addEventListener('click', function(e) {
+                if (e.target === categoryModalEl) {
+                    categoryModalEl.classList.remove('show');
+                }
+            });
+
+            // Adicionar nova categoria
+            addCategoryBtnEl.addEventListener('click', adicionarCategoria);
+
+            // Enter para adicionar categoria
+            newCategoryNameEl.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') adicionarCategoria();
+            });
+
+            // Som ao selecionar prioridade
+            priorityOptions.forEach(function(option) {
+                option.addEventListener('change', function() {
+                    playSound('check');
+                });
+            });
+
+            // Inicializar contexto de audio na primeira interacao
+            document.addEventListener('click', function() {
+                initAudioContext();
+            }, { once: true });
+        }
+
+        function adicionarCategoria() {
+            var nome = newCategoryNameEl.value.trim();
+            if (!nome) {
+                shakeElement(newCategoryNameEl);
+                return;
+            }
+
+            var novaCategoria = {
+                id: 'cat_' + Date.now(),
+                nome: nome,
+                cor: categoryColors[categorias.length % categoryColors.length]
             };
-            document.getElementById('pwaModalClose').onclick = () => pwaModal.classList.remove('show');
-            document.getElementById('pwaAndroidInstallBtn').onclick = () => { if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.then(() => pwaModal.classList.remove('show')); } };
+
+            categorias.push(novaCategoria);
+            salvarCategorias();
+            renderizarCategorias();
+            renderizarCategoriasLista();
+            renderizarCategoryFilters();
+            newCategoryNameEl.value = '';
+            playSound('add');
+            mostrarToast('Categoria adicionada!', '&#9989;');
         }
 
-        addBtn.onclick = () => {
-            const txt = inputTarefa.value.trim();
-            if (!txt) return;
-            const cat = document.querySelector('input[name="categoria"]:checked').value;
-            tarefas.unshift({ id: Date.now(), texto: txt, concluida: false, categoria: cat, createdAt: new Date().toISOString() });
-            inputTarefa.value = ''; salvar(); renderizar();
-        };
+        function removerCategoria(id) {
+            if (categorias.length <= 1) {
+                mostrarToast('Você precisa ter pelo menos 1 categoria!', '&#9888;');
+                return;
+            }
 
-        handleAuth(); setupPWA(); renderizar(); atualizarStreak();
-    })();
+            // Verificar se existem tarefas com esta categoria
+            var tarefasComCategoria = tarefas.filter(function(t) { return t.categoria === id; });
+            if (tarefasComCategoria.length > 0) {
+                if (!confirm('Esta categoria tem ' + tarefasComCategoria.length + ' tarefa(s). Deseja realmente exclui-la?')) {
+                    return;
+                }
+                // Remover tarefas da categoria
+                tarefas = tarefas.filter(function(t) { return t.categoria !== id; });
+                salvar();
+            }
 
+            categorias = categorias.filter(function(c) { return c.id !== id; });
+            salvarCategorias();
+
+            // Selecionar primeira categoria se a atual foi removida
+            if (selectedCategoryId === id && categorias.length > 0) {
+                selectedCategoryId = categorias[0].id;
+            }
+
+            renderizarCategorias();
+            renderizarCategoriasLista();
+            renderizarCategoryFilters();
+            renderizar();
+            playSound('delete');
+            mostrarToast('Categoria removida!', '&#128465;');
+        }
+
+        function salvarCategorias() {
+            localStorage.setItem('categoriasZenUltimate', JSON.stringify(categorias));
+            var fb = getFirebase();
+            if (!fb || !firebaseConfigured || !currentUser) return;
+            try {
+                fb.set(fb.ref(fb.db, userPath('categorias')), categorias)
+                  .catch(function(e){ console.warn('Firebase write error:', e); });
+            } catch(e) { console.warn('Firebase error:', e); }
+        }
+
+        function renderizarCategorias() {
+            categoryOptionsEl.innerHTML = '';
+
+            categorias.forEach(function(cat) {
+                var label = document.createElement('label');
+                label.className = 'category-option';
+                label.dataset.categoryId = cat.id;
+
+                label.innerHTML =
+                    '<input type="radio" name="categoria" value="' + cat.id + '"' + (cat.id === selectedCategoryId ? ' checked' : '') + '>' +
+                    '<span class="category-tag" style="color: ' + cat.cor + '; border-color: ' + cat.cor + '20;">' +
+                        '<span>' + cat.nome + '</span>' +
+                    '</span>';
+
+                label.querySelector('input').addEventListener('change', function() {
+                    selectedCategoryId = cat.id;
+                    renderizarCategorias();
+                    playSound('check');
+                });
+
+                categoryOptionsEl.appendChild(label);
+            });
+        }
+
+        function renderizarCategoriasLista() {
+            categoryListEl.innerHTML = '';
+
+            categorias.forEach(function(cat) {
+                var div = document.createElement('div');
+                div.className = 'category-list-item';
+                div.innerHTML =
+                    '<div class="cat-info">' +
+                        '<span class="cat-icon" style="font-size: 24px; color: ' + cat.cor + ';">&#9679;</span>' +
+                        '<span class="cat-name">' + cat.nome + '</span>' +
+                    '</div>' +
+                    '<button class="delete-cat-btn" data-id="' + cat.id + '" title="Excluir categoria">' +
+                        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">' +
+                            '<polyline points="3 6 5 6 21 6"/>' +
+                            '<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>' +
+                        '</svg>' +
+                    '</button>';
+
+                div.querySelector('.delete-cat-btn').addEventListener('click', function() {
+                    removerCategoria(cat.id);
+                });
+
+                categoryListEl.appendChild(div);
+            });
+        }
+
+        function renderizarCategoryFilters() {
+            var container = document.getElementById('categoryFiltersContainer');
+            container.innerHTML = '';
+
+            // Separador visual - linha vertical sutil
+            var separator = document.createElement('div');
+            separator.style.cssText = 'width: 1px; height: 20px; background: #d0d0d0; margin: 0 6px; flex-shrink: 0; border-radius: 2px;';
+            container.appendChild(separator);
+
+            categorias.forEach(function(cat) {
+                var btn = document.createElement('button');
+                btn.className = 'category-filter-btn';
+                btn.dataset.categoryFilter = cat.id;
+                btn.innerHTML =
+                    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">' +
+                        '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>' +
+                    '</svg>' +
+                    '<span>' + cat.nome + '</span>';
+
+                btn.addEventListener('click', function() {
+                    // Remove active de todos os filtros
+                    filterBtns.forEach(function(b) { b.classList.remove('active'); });
+                    document.querySelectorAll('.category-filter-btn').forEach(function(b) { b.classList.remove('active'); });
+
+                    btn.classList.add('active');
+                    currentFilter = 'category-' + cat.id;
+                    renderizar();
+                });
+
+                container.appendChild(btn);
+            });
+        }
+
+        function getSelectedPriority() {
+            var selected = document.querySelector('input[name="prioridade"]:checked');
+            return selected ? selected.value : 'verde';
+        }
+
+        function adicionarTarefa() {
+            var texto = input.value.trim();
+            if (!texto) {
+                shakeElement(input.closest('.input-wrapper'));
+                return;
+            }
+
+            var dataLimite = dataLimiteInput.value;
+            var horaLimite = getHoraLimiteValue();
+
+            var tarefa = {
+                id: Date.now(),
+                texto: texto,
+                concluida: false,
+                prioridade: getSelectedPriority(),
+                categoria: selectedCategoryId,
+                createdAt: new Date().toISOString(),
+                dataLimite: dataLimite || null,
+                horaLimite: horaLimite || null,
+                completedAt: null
+            };
+
+            tarefas.unshift(tarefa);
+            salvar();
+            renderizar();
+
+            input.value = '';
+            animateSuccess(btn);
+            playSound('add');
+            mostrarToast('Tarefa adicionada!', '&#128221;');
+
+            input.focus();
+        }
+
+        function toggleTarefa(id) {
+            var tarefa = tarefas.find(function(t) { return t.id === id; });
+            if (tarefa) {
+                var taskElement = document.querySelector('[data-id="' + id + '"]');
+
+                tarefa.concluida = !tarefa.concluida;
+
+                if (tarefa.concluida) {
+                    tarefa.completedAt = new Date().toISOString();
+
+                    // Animacão especial de check
+                    if (taskElement) {
+                        taskElement.classList.add('checking');
+                        setTimeout(function() {
+                            taskElement.classList.remove('checking');
+                        }, 600);
+                    }
+
+                    playSound('check');
+                    atualizarStreak();
+
+                    // Verificar milestone
+                    if (streak.count === 7 || streak.count === 30 || streak.count === 100 || streak.count === 365) {
+                        playSound('streak');
+                        mostrarToast('Incrivel! ' + streak.count + ' dias de sequencia!', '&#128293;');
+                    }
+                } else {
+                    tarefa.completedAt = null;
+                    playSound('check');
+                    atualizarStreak();
+                }
+
+                salvar();
+                renderizar();
+            }
+        }
+
+        function deletarTarefa(id) {
+            var taskElement = document.querySelector('[data-id="' + id + '"]');
+            if (taskElement) {
+                taskElement.classList.add('removing');
+                setTimeout(function() {
+                    tarefas = tarefas.filter(function(t) { return t.id !== id; });
+                    salvar();
+                    renderizar();
+                    playSound('delete');
+                }, 500);
+            }
+        }
+
+        // ── Modal de edição ──────────────────────────────────────────────
+        var editModalEl = document.getElementById('editModal');
+        var editTextoEl = document.getElementById('editTexto');
+        var editDataEl  = document.getElementById('editData');
+        var editHHEl    = document.getElementById('editHH');
+        var editMMEl    = document.getElementById('editMM');
+        var editSaveEl  = document.getElementById('editSaveBtn');
+        var closeEditEl = document.getElementById('closeEditModal');
+        var editingId   = null;
+
+        // Populate edit hour/minute selects
+        (function() {
+            for (var h = 0; h < 24; h++) {
+                var o = document.createElement('option');
+                o.value = String(h).padStart(2,'0');
+                o.textContent = String(h).padStart(2,'0');
+                editHHEl.appendChild(o);
+            }
+            for (var m = 0; m < 60; m++) {
+                var o2 = document.createElement('option');
+                o2.value = String(m).padStart(2,'0');
+                o2.textContent = String(m).padStart(2,'0');
+                editMMEl.appendChild(o2);
+            }
+        })();
 
         closeEditEl.addEventListener('click', function() {
             editModalEl.classList.remove('show');
@@ -2760,209 +2974,469 @@ input[type="time"] {
             if (radioEl) radioEl.checked = true;
 
             editModalEl.classList.add('show');
-            setTimeout
-    (function() {
-        'use strict';
-        
-        const lista = document.getElementById('listaTarefas');
-        const emptyState = document.getElementById('emptyState');
-        const inputTarefa = document.getElementById('inputTarefa');
-        const addBtn = document.getElementById('addBtn');
-        const totalTasksEl = document.getElementById('totalTasks');
-        const completedTasksEl = document.getElementById('completedTasks');
-        const pendingTasksEl = document.getElementById('pendingTasks');
-        const streakCountEl = document.getElementById('streakCount');
-        const streakStatusEl = document.getElementById('streakStatus');
+            setTimeout(function() { editTextoEl.focus(); }, 100);
+        }
 
-        let tarefas = JSON.parse(localStorage.getItem('tarefasZenUltimate') || '[]');
-        let categorias = JSON.parse(localStorage.getItem('categoriasZenUltimate') || '[{"id":"casa","nome":"Casa","cor":"#ec4899"},{"id":"trabalho","nome":"Trabalho","cor":"#3b82f6"},{"id":"pessoal","nome":"Pessoal","cor":"#8b5cf6"},{"id":"estudos","nome":"Estudos","cor":"#f59e0b"}]');
-        let streak = JSON.parse(localStorage.getItem('streakZenUltimate') || '{"count":0,"lastCompletionDate":null}');
-        let currentUser = null;
-        let _fbListenersActive = false;
-        let _primeiraSync = true;
+        // ── Firebase helpers ─────────────────────────────────────────
+        var _fb = null;
+        var firebaseConfigured = false;
+        var currentUser = null;
 
-        function addDebugLog(msg, type) {
-            console.log('[DEBUG]', msg);
-            const linesEl = document.getElementById('debugLines');
-            const consoleEl = document.getElementById('debugConsole');
-            if (linesEl && consoleEl) {
-                consoleEl.style.display = 'block';
-                const line = document.createElement('div');
-                line.style.color = type === 'error' ? '#ff4444' : '#00ff00';
-                line.style.fontSize = '10px';
-                line.style.borderBottom = '1px solid #333';
-                line.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
-                linesEl.prepend(line);
+        function getFirebase() {
+            if (!_fb && window._firebase) {
+                _fb = window._firebase;
+                var scriptText = '';
+                document.querySelectorAll('script[type="module"]').forEach(function(s){ scriptText += s.textContent; });
+                firebaseConfigured = !scriptText.includes('SUA_API_KEY') && !scriptText.includes('SEU_PROJETO');
             }
+            return _fb;
         }
 
-        function mostrarToast(mensagem, icone) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toastIcon').innerHTML = icone || '✅';
-            document.getElementById('toastMessage').textContent = mensagem;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
+        function userPath(subpath) {
+            return 'users/' + currentUser.uid + '/' + subpath;
         }
 
-        function getFirebase() { return window._firebase; }
-        function userPath(sub) { return 'users/' + currentUser.uid + '/' + sub; }
-
-        function mergeOfflineTasks(cloudTasks) {
-            const localTasks = JSON.parse(localStorage.getItem('tarefasZenUltimate') || '[]');
-            if (!localTasks.length) return cloudTasks;
-            const cloudIds = new Set(cloudTasks.map(t => String(t.id)));
-            const offlineOnly = localTasks.filter(t => !cloudIds.has(String(t.id)));
-            if (offlineOnly.length > 0) {
-                const merged = offlineOnly.concat(cloudTasks);
-                const fb = getFirebase();
-                fb.set(fb.ref(fb.db, userPath('tarefas')), merged).catch(e => console.error(e));
-                mostrarToast(offlineOnly.length + ' tarefas sincronizadas!', '☁️');
-                return merged;
-            }
-            return cloudTasks;
-        }
-
-        function setupFirebaseListeners() {
-            if (_fbListenersActive) return;
-            _fbListenersActive = true;
-            const fb = getFirebase();
-            fb.onValue(fb.ref(fb.db, userPath('tarefas')), snap => {
-                const data = snap.val();
-                let cloudTasks = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
-                if (_primeiraSync) { _primeiraSync = false; cloudTasks = mergeOfflineTasks(cloudTasks); }
-                tarefas = cloudTasks;
-                localStorage.setItem('tarefasZenUltimate', JSON.stringify(tarefas));
-                renderizar(); atualizarStreak();
-            });
-            fb.onValue(fb.ref(fb.db, userPath('streak')), snap => {
-                const data = snap.val();
-                if (data) { streak = data; localStorage.setItem('streakZenUltimate', JSON.stringify(streak)); renderizarStreak(); }
-            });
-        }
-
-        function handleAuth() {
-            const fb = getFirebase();
-            if (!fb) return setTimeout(handleAuth, 500);
-            const isMobile = /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent);
-            
-            fb.onAuthStateChanged(fb.auth, user => {
-                addDebugLog('Auth: ' + (user ? 'Logado' : 'Deslogado'));
-                if (!user && sessionStorage.getItem('fb_redirecting') === 'true') return;
-                if (user) {
-                    sessionStorage.removeItem('fb_redirecting');
-                    currentUser = user;
-                    document.getElementById('loginScreen').classList.remove('show');
-                    document.getElementById('userInfo').classList.add('show');
-                    document.getElementById('userAvatar').src = user.photoURL || '';
-                    document.getElementById('userName').textContent = user.displayName ? user.displayName.split(' ')[0] : user.email.split('@')[0];
-                    setupFirebaseListeners();
-                } else {
-                    document.getElementById('loginScreen').classList.add('show');
-                    document.getElementById('userInfo').classList.remove('show');
-                }
-            });
-
-            fb.getRedirectResult(fb.auth).then(res => {
-                sessionStorage.removeItem('fb_redirecting');
-                if (res) addDebugLog('Login Sucesso');
-            }).catch(e => {
-                sessionStorage.removeItem('fb_redirecting');
-                addDebugLog('Erro: ' + e.code, 'error');
-                if (e.code === 'auth/unauthorized-domain') alert('Adicione ' + location.hostname + ' nos domínios do Firebase!');
-            });
-
-            document.getElementById('googleLoginBtn').onclick = () => {
-                if (isMobile) { sessionStorage.setItem('fb_redirecting', 'true'); fb.signInWithRedirect(fb.auth, fb.provider); }
-                else fb.signInWithPopup(fb.auth, fb.provider).catch(e => addDebugLog(e.code, 'error'));
-            };
-            document.getElementById('logoutBtn').onclick = () => fb.signOut(fb.auth).then(() => location.reload());
-            document.getElementById('skipLoginBtn').onclick = () => document.getElementById('loginScreen').classList.remove('show');
+        function setSyncStatus(state, text) {
+            var el = document.getElementById('syncStatus');
+            var lb = document.getElementById('syncLabel');
+            if (!el) return;
+            el.className = 'sync-status sync-' + state;
+            lb.textContent = text;
         }
 
         function salvar() {
             localStorage.setItem('tarefasZenUltimate', JSON.stringify(tarefas));
-            const fb = getFirebase();
-            if (fb && currentUser) fb.set(fb.ref(fb.db, userPath('tarefas')), tarefas).catch(e => console.error(e));
-        }
-
-        function renderizar() {
-            lista.innerHTML = '';
-            if (!tarefas.length) emptyState.classList.add('show');
-            else emptyState.classList.remove('show');
-
-            tarefas.forEach(t => {
-                const li = document.createElement('li');
-                li.className = 'zen-task-item' + (t.concluida ? ' completed' : '');
-                const cat = categorias.find(c => c.id === t.categoria) || categorias[0];
-                li.innerHTML = `
-                    <label class="zen-checkbox"><input type="checkbox" ${t.concluida ? 'checked' : ''}><span class="zen-checkmark"></span></label>
-                    <div class="zen-task-content">
-                        <span class="zen-task-text">${t.texto}</span>
-                        <div class="zen-task-meta"><span class="zen-category-badge" style="background:${cat.cor}20;color:${cat.cor}">${cat.nome}</span></div>
-                    </div>
-                    <div class="zen-task-actions"><button class="zen-task-btn del-btn" style="border:none;background:none;cursor:pointer;font-size:18px;">🗑️</button></div>
-                `;
-                li.querySelector('input').onchange = () => { t.concluida = !t.concluida; t.completedAt = t.concluida ? new Date().toISOString() : null; salvar(); renderizar(); atualizarStreak(); };
-                li.querySelector('.del-btn').onclick = () => { tarefas = tarefas.filter(x => x.id !== t.id); salvar(); renderizar(); };
-                lista.appendChild(li);
-            });
-            updateStats();
-        }
-
-        function updateStats() {
-            totalTasksEl.textContent = tarefas.length;
-            completedTasksEl.textContent = tarefas.filter(t => t.concluida).length;
-            pendingTasksEl.textContent = tarefas.filter(t => !t.concluida).length;
+            var fb = getFirebase();
+            if (!fb || !firebaseConfigured || !currentUser) return;
+            try {
+                fb.set(fb.ref(fb.db, userPath('tarefas')), tarefas)
+                  .catch(function(e){ console.warn('Firebase write error:', e); });
+            } catch(e) { console.warn('Firebase error:', e); }
         }
 
         function atualizarStreak() {
-            const hoje = new Date().toDateString();
-            const doneToday = tarefas.some(t => t.concluida && t.completedAt && new Date(t.completedAt).toDateString() === hoje);
-            if (doneToday && streak.lastCompletionDate !== hoje) {
-                const ontem = new Date(Date.now() - 86400000).toDateString();
-                streak.count = (streak.lastCompletionDate === ontem) ? streak.count + 1 : 1;
-                streak.lastCompletionDate = hoje;
+            var hoje = new Date().toDateString();
+            var ontem = new Date(Date.now() - 86400000).toDateString();
+
+            // Verificar se já completou tarefa hoje
+            var tarefasConcluidasHoje = tarefas.filter(function(t) {
+                if (!t.concluida || !t.completedAt) return false;
+                return new Date(t.completedAt).toDateString() === hoje;
+            });
+
+            if (tarefasConcluidasHoje.length > 0) {
+                // Já completou tarefa hoje
+                if (streak.lastCompletionDate !== hoje) {
+                    // Primeira tarefa concluída hoje
+                    if (streak.lastCompletionDate === ontem) {
+                        // Continuação da streak
+                        streak.count++;
+                    } else if (streak.lastCompletionDate !== hoje) {
+                        // Novo início de streak
+                        streak.count = 1;
+                    }
+                    streak.lastCompletionDate = hoje;
+                    salvarStreak();
+                }
+            }
+
+            // Verificar se a streak foi quebrada
+            if (streak.lastCompletionDate && streak.lastCompletionDate !== hoje && streak.lastCompletionDate !== ontem) {
+                streak.count = 0;
                 salvarStreak();
             }
+
             renderizarStreak();
         }
 
         function salvarStreak() {
             localStorage.setItem('streakZenUltimate', JSON.stringify(streak));
-            const fb = getFirebase();
-            if (fb && currentUser) fb.set(fb.ref(fb.db, userPath('streak')), streak).catch(e => console.error(e));
+            var fb = getFirebase();
+            if (!fb || !firebaseConfigured || !currentUser) return;
+            try {
+                fb.set(fb.ref(fb.db, userPath('streak')), streak)
+                  .catch(function(e){ console.warn('Firebase write error:', e); });
+            } catch(e) { console.warn('Firebase error:', e); }
         }
 
         function renderizarStreak() {
-            document.getElementById('streakCount').textContent = streak.count;
+            streakCountEl.textContent = streak.count;
+
+            // Atualizar status baseado na streak
+            if (streak.count === 0) {
+                streakStatusEl.textContent = 'Comece sua sequencia!';
+                streakIconEl.innerHTML = '&#128164;';
+                streakFireEl.classList.remove('level-100');
+                streakParticlesEl.classList.remove('show');
+            } else if (streak.count < 7) {
+                streakStatusEl.textContent = 'Continue assim!';
+                streakIconEl.innerHTML = '&#128293;';
+                streakFireEl.classList.remove('level-100');
+                streakParticlesEl.classList.remove('show');
+            } else if (streak.count < 30) {
+                streakStatusEl.textContent = 'Muito bem!';
+                streakIconEl.innerHTML = '&#128293;';
+                streakFireEl.classList.remove('level-100');
+                streakParticlesEl.classList.remove('show');
+            } else if (streak.count < 100) {
+                streakStatusEl.textContent = 'Incrivel!';
+                streakIconEl.innerHTML = '&#128293;';
+                streakFireEl.classList.remove('level-100');
+                streakParticlesEl.classList.add('show');
+            } else {
+                streakStatusEl.innerHTML = 'LEGENDARIO! &#127942;';
+                streakIconEl.innerHTML = '&#128081;';
+                streakFireEl.classList.add('level-100');
+                streakParticlesEl.classList.add('show');
+            }
         }
 
-        function setupPWA() {
-            const pwaBtn = document.getElementById('pwaInstallBtn');
-            const pwaModal = document.getElementById('pwaModal');
-            let deferredPrompt;
-            window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; pwaBtn.classList.add('show'); });
-            pwaBtn.onclick = () => {
-                const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-                if (isIOS) document.getElementById('pwaStepsIOS').style.display = 'flex';
-                else document.getElementById('pwaStepsAndroid').style.display = 'flex';
-                pwaModal.classList.add('show');
+        function updateStats() {
+            var total = tarefas.length;
+            var completed = tarefas.filter(function(t) { return t.concluida; }).length;
+            var pending = total - completed;
+
+            var now = new Date();
+            var overdue = tarefas.filter(function(t) {
+                if (t.concluida || !t.dataLimite) return false;
+                var deadline = new Date(t.dataLimite + 'T' + (t.horaLimite || '23:59'));
+                return now > deadline;
+            }).length;
+
+            animateNumber(totalTasksEl, total);
+            animateNumber(completedTasksEl, completed);
+            animateNumber(pendingTasksEl, pending);
+            animateNumber(overdueTasksEl, overdue);
+        }
+
+        function animateNumber(element, target) {
+            var current = parseInt(element.textContent) || 0;
+            if (current !== target) {
+                element.style.transform = 'scale(1.3)';
+                element.style.transition = 'transform 0.2s ease';
+                setTimeout(function() {
+                    element.textContent = target;
+                    element.style.transform = 'scale(1)';
+                }, 150);
+            }
+        }
+
+        function isOverdue(tarefa) {
+            if (tarefa.concluida || !tarefa.dataLimite) return false;
+            var now = new Date();
+            var deadline = new Date(tarefa.dataLimite + 'T' + (tarefa.horaLimite || '23:59'));
+            return now > deadline;
+        }
+
+        function renderizar() {
+            lista.innerHTML = '';
+
+            var filteredTarefas = tarefas;
+
+            if (currentFilter === 'pending') {
+                filteredTarefas = tarefas.filter(function(t) { return !t.concluida; });
+            } else if (currentFilter === 'completed') {
+                filteredTarefas = tarefas.filter(function(t) { return t.concluida; });
+            } else if (currentFilter === 'overdue') {
+                filteredTarefas = tarefas.filter(function(t) { return !t.concluida && isOverdue(t); });
+            } else if (currentFilter === 'priority-low') {
+                filteredTarefas = tarefas.filter(function(t) { return t.prioridade === 'verde'; });
+            } else if (currentFilter === 'priority-medium') {
+                filteredTarefas = tarefas.filter(function(t) { return t.prioridade === 'amarela'; });
+            } else if (currentFilter === 'priority-high') {
+                filteredTarefas = tarefas.filter(function(t) { return t.prioridade === 'vermelha'; });
+            } else if (currentFilter.startsWith('category-')) {
+                var categoryId = currentFilter.replace('category-', '');
+                filteredTarefas = tarefas.filter(function(t) { return t.categoria === categoryId; });
+            }
+
+            if (filteredTarefas.length === 0) {
+                emptyState.classList.add('show');
+            } else {
+                emptyState.classList.remove('show');
+            }
+
+            filteredTarefas.forEach(function(tarefa, index) {
+                var li = document.createElement('li');
+                li.className = 'zen-task-item';
+                if (tarefa.concluida) li.classList.add('completed');
+                if (isOverdue(tarefa)) li.classList.add('overdue');
+                li.dataset.id = tarefa.id;
+                li.style.animationDelay = (index * 0.05) + 's';
+
+                var priorityLabels = {
+                    verde: { label: 'Baixa', class: 'baixa' },
+                    amarela: { label: 'Media', class: 'media' },
+                    vermelha: { label: 'Alta', class: 'alta' }
+                };
+
+                var categoria = categorias.find(function(c) { return c.id === tarefa.categoria; }) || categorias[0];
+                var priority = priorityLabels[tarefa.prioridade] || priorityLabels.verde;
+                var createdDate = formatDateTime(tarefa.createdAt);
+
+                var prazoTexto = '';
+                if (tarefa.dataLimite) {
+                    prazoTexto = formatDeadline(tarefa.dataLimite, tarefa.horaLimite);
+                }
+
+                var overdueClass = isOverdue(tarefa) ? 'overdue' : '';
+
+                li.innerHTML =
+                    '<label class="zen-checkbox">' +
+                        '<input type="checkbox"' + (tarefa.concluida ? ' checked' : '') + '>' +
+                        '<span class="zen-checkmark">' +
+                            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">' +
+                                '<path d="M20 6L9 17l-5-5"/>' +
+                            '</svg>' +
+                        '</span>' +
+                    '</label>' +
+                    '<div class="zen-task-content">' +
+                        '<span class="zen-task-text">' + escapeHtml(tarefa.texto) + '</span>' +
+                        '<div class="zen-task-meta">' +
+                            '<span class="zen-category-badge" style="background: ' + categoria.cor + '20; color: ' + categoria.cor + ';">' +
+                                categoria.nome +
+                            '</span>' +
+                            '<span class="zen-priority-badge ' + priority.class + '">' +
+                                priority.label +
+                            '</span>' +
+                            '<span class="zen-task-date ' + overdueClass + '">' +
+                                createdDate +
+                            '</span>' +
+                            (prazoTexto ? '<span class="zen-task-date ' + overdueClass + '">' +
+                                prazoTexto +
+                            '</span>' : '') +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="zen-task-actions">' +
+                        '<button class="zen-task-btn zen-edit-btn" title="Editar">' +
+                            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+                                '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>' +
+                                '<path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>' +
+                            '</svg>' +
+                        '</button>' +
+                        '<button class="zen-task-btn zen-delete-btn" title="Excluir">' +
+                            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+                                '<polyline points="3 6 5 6 21 6"/>' +
+                                '<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>' +
+                            '</svg>' +
+                        '</button>' +
+                    '</div>';
+
+                var checkbox = li.querySelector('input[type="checkbox"]');
+                var editBtn = li.querySelector('.zen-edit-btn');
+                var deleteBtn = li.querySelector('.zen-delete-btn');
+
+                checkbox.addEventListener('change', function() { toggleTarefa(tarefa.id); });
+                editBtn.addEventListener('click', function() { editarTarefa(tarefa.id); });
+                deleteBtn.addEventListener('click', function() { deletarTarefa(tarefa.id); });
+
+                lista.appendChild(li);
+            });
+
+            updateStats();
+        }
+
+        function formatDateTime(dateString) {
+            var date = new Date(dateString);
+            var now = new Date();
+            var diff = now - date;
+
+            if (diff < 86400000) {
+                return 'Hoje ' + date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            }
+            if (diff < 172800000) {
+                return 'Ontem ' + date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            }
+
+            return date.toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: 'short',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function formatDeadline(dataLimite, horaLimite) {
+            var date = new Date(dataLimite + 'T' + (horaLimite || '23:59'));
+            var now = new Date();
+            var diff = date - now;
+
+            if (diff < 0) {
+                return 'Atrasado!';
+            }
+
+            var days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+            if (days === 0) {
+                return 'Para hoje ' + (horaLimite || '');
+            }
+            if (days === 1) {
+                return 'Para amanha';
+            }
+            if (days < 7) {
+                return 'Em ' + days + ' dias';
+            }
+
+            return 'Em ' + days + ' dias';
+        }
+
+        function escapeHtml(text) {
+            var div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function animateSuccess(element) {
+            element.style.transform = 'scale(1.06)';
+            setTimeout(function() {
+                element.style.transform = 'scale(1)';
+            }, 200);
+        }
+
+        function shakeElement(element) {
+            element.style.animation = 'zenShake 0.5s ease';
+            element.style.borderColor = '#f87171';
+            setTimeout(function() {
+                element.style.animation = '';
+                element.style.borderColor = '';
+            }, 500);
+        }
+
+        function mostrarToast(mensagem, icone) {
+            var toast = document.getElementById('toast');
+            var toastMessage = document.getElementById('toastMessage');
+            var toastIcon = document.getElementById('toastIcon');
+
+            toastMessage.textContent = mensagem;
+            toastIcon.innerHTML = icone;
+            toast.classList.add('show');
+
+            setTimeout(function() {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // ══════════════════════════════════════════════════
+        //  SISTEMA DE NOTIFICAÇÕES DE PRAZO
+        // ══════════════════════════════════════════════════
+        var notificacoesEnviadas = JSON.parse(localStorage.getItem('zenNotificacoes') || '{}');
+
+        function salvarNotificacoesEnviadas() {
+            localStorage.setItem('zenNotificacoes', JSON.stringify(notificacoesEnviadas));
+        }
+
+        function verificarNotificacoesPrazo() {
+            if (!currentUser || !currentUser.email) return;
+            var agora = new Date();
+
+            tarefas.forEach(function(tarefa) {
+                if (tarefa.concluida || !tarefa.dataLimite) return;
+
+                var prazo    = new Date(tarefa.dataLimite + 'T' + (tarefa.horaLimite || '23:59'));
+                var criadaEm = new Date(tarefa.createdAt);
+                var diffPrazo   = prazo - agora;      // ms até o prazo
+                var idadeTarefa = agora - criadaEm;   // ms desde criação
+
+                if (diffPrazo < 0) return; // já atrasada
+
+                var MS_1DIA  = 24 * 60 * 60 * 1000;
+                var MS_1HORA = 60 * 60 * 1000;
+                var MS_10MIN = 10 * 60 * 1000;
+
+                var tipoNotif = null;
+
+                // Situação 1: criada há +2 dias, falta ≤1 dia e >1h
+                if (idadeTarefa >= 2 * MS_1DIA && diffPrazo <= MS_1DIA && diffPrazo > MS_1HORA) {
+                    tipoNotif = '1dia';
+                }
+                // Situação 2: criada há +24h, falta ≤1h e >10min
+                else if (idadeTarefa >= MS_1DIA && diffPrazo <= MS_1HORA && diffPrazo > MS_10MIN) {
+                    tipoNotif = '1hora';
+                }
+                // Situação 3: criada há +1h, falta ≤10min
+                else if (idadeTarefa >= MS_1HORA && diffPrazo <= MS_10MIN) {
+                    tipoNotif = '10min';
+                }
+
+                if (!tipoNotif) return;
+
+                var chave = tarefa.id + '_' + tipoNotif;
+                if (notificacoesEnviadas[chave]) return; // já notificou
+
+                notificacoesEnviadas[chave] = true;
+                salvarNotificacoesEnviadas();
+                dispararNotificacao(tarefa, tipoNotif, prazo);
+            });
+        }
+
+        function dispararNotificacao(tarefa, tipo, prazo) {
+            var msgs = {
+                '1dia' : '⏰ Falta 1 dia para o prazo!',
+                '1hora': '🚨 Falta apenas 1 hora para o prazo!',
+                '10min': '🔴 URGENTE: Faltam 10 minutos para o prazo!'
             };
-            document.getElementById('pwaModalClose').onclick = () => pwaModal.classList.remove('show');
-            document.getElementById('pwaAndroidInstallBtn').onclick = () => { if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.then(() => pwaModal.classList.remove('show')); } };
+            var msg = msgs[tipo];
+            var prazoFormatado = prazo.toLocaleString('pt-BR', {
+                day:'2-digit', month:'2-digit', year:'numeric',
+                hour:'2-digit', minute:'2-digit'
+            });
+
+            // Toast no app
+            mostrarToast(msg + ' ' + tarefa.texto.substring(0, 25) + (tarefa.texto.length > 25 ? '...' : ''), '⏰');
+
+            // Notificação nativa do browser
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification('ZenTask Pro — ' + msg, {
+                    body: tarefa.texto + '\nPrazo: ' + prazoFormatado,
+                    icon: 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'12\' fill=\'%238b5cf6\'/%3E%3C/svg%3E'
+                });
+            }
+
+            // Email real via EmailJS
+            if (currentUser && currentUser.email &&
+                window.EMAILJS_PUBLIC_KEY !== 'SUA_PUBLIC_KEY') {
+                try {
+                    emailjs.init({ publicKey: window.EMAILJS_PUBLIC_KEY });
+                    emailjs.send(window.EMAILJS_SERVICE_ID, window.EMAILJS_TEMPLATE_ID, {
+                        to_email:   currentUser.email,
+                        to_name:    currentUser.displayName || currentUser.email,
+                        task_name:  tarefa.texto,
+                        deadline:   prazoFormatado,
+                        category:   tarefa.categoria,
+                        priority:   (tarefa.prioridade === 'vermelha' ? 'Alta' : tarefa.prioridade === 'amarela' ? 'Média' : 'Baixa'),
+                        alert_type: msg
+                    }).catch(function(err) {
+                        console.warn('EmailJS error:', err);
+                    });
+                } catch(e) {
+                    console.warn('EmailJS not configured:', e);
+                }
+            }
         }
 
-        addBtn.onclick = () => {
-            const txt = inputTarefa.value.trim();
-            if (!txt) return;
-            const cat = document.querySelector('input[name="categoria"]:checked').value;
-            tarefas.unshift({ id: Date.now(), texto: txt, concluida: false, categoria: cat, createdAt: new Date().toISOString() });
-            inputTarefa.value = ''; salvar(); renderizar();
-        };
+        // Pede permissão de notificação na primeira interação
+        document.addEventListener('click', function() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+        }, { once: true });
 
-        handleAuth(); setupPWA(); renderizar(); atualizarStreak();
+        // Verifica notificações a cada minuto
+        setInterval(verificarNotificacoesPrazo, 60 * 1000);
+
+        // Limpa notificações de tarefas concluídas/removidas (a cada hora)
+        setInterval(function() {
+            var remover = [];
+            Object.keys(notificacoesEnviadas).forEach(function(k) {
+                var id = parseInt(k.split('_')[0]);
+                var t = tarefas.find(function(t) { return t.id === id; });
+                if (!t || t.concluida) remover.push(k);
+            });
+            remover.forEach(function(k) { delete notificacoesEnviadas[k]; });
+            if (remover.length) salvarNotificacoesEnviadas();
+        }, 60 * 60 * 1000);
+
     })();
-
     </script>
 
 
