@@ -5,6 +5,51 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ZenTask Pro - Organizador de Tarefas com Streak</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='12' fill='%238b5cf6'/%3E%3Cpath d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' fill='none' stroke='%23fff' stroke-width='2'/%3E%3C/svg%3E">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#8b5cf6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="ZenTask">
+
+    <!-- Limpa Service Workers antigos imediatamente -->
+    <script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(regs) {
+            regs.forEach(function(reg) { reg.unregister(); });
+        });
+        caches.keys().then(function(keys) {
+            keys.forEach(function(key) { caches.delete(key); });
+        });
+    }
+    </script>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+      import { getDatabase, ref, set, onValue, remove, update } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+      import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+
+      // ============================================================
+      //  🔥 CREDENCIAIS DO FIREBASE
+      // ============================================================
+      const firebaseConfig = {
+        apiKey: "AIzaSyAVSnWAGwNdfzM92hFSHHE1ZYx9Qa-1bdE",
+        authDomain: "zentask-firebase.firebaseapp.com",
+        databaseURL: "https://zentask-firebase-default-rtdb.firebaseio.com",
+        projectId: "zentask-firebase",
+        storageBucket: "zentask-firebase.firebasestorage.app",
+        messagingSenderId: "912525998628",
+        appId: "1:912525998628:web:a9be0680d953f4f2c776b1",
+        measurementId: "G-4Z7JCJB6Q8"
+        };
+
+      const app      = initializeApp(firebaseConfig);
+      const db       = getDatabase(app);
+      const auth     = getAuth(app);
+      const provider = new GoogleAuthProvider();
+
+      window._firebase = { db, ref, set, onValue, remove, update, auth, provider, signInWithPopup, signOut, onAuthStateChanged };
+    </script>
 
 
 <!-- ==========================================
@@ -1570,13 +1615,201 @@ input[type="time"] {
     box-shadow: 0 4px 20px rgba(139,92,246,0.3);
 }
 
-.edit-save-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(139,92,246,0.4);
+/* ==========================================
+   STATUS DE SINCRONIZAÇÃO FIREBASE
+   ========================================== */
+.sync-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 10px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.4s ease;
 }
+.sync-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.sync-connecting { background: rgba(107,114,128,0.12); color: #6b7280; }
+.sync-connecting .sync-dot { background: #9ca3af; animation: syncPulse 1.2s ease-in-out infinite; }
+.sync-online { background: rgba(16,185,129,0.12); color: #059669; }
+.sync-online .sync-dot { background: #10b981; }
+.sync-offline { background: rgba(251,191,36,0.15); color: #b45309; }
+.sync-offline .sync-dot { background: #f59e0b; }
+.sync-error { background: rgba(248,113,113,0.12); color: #dc2626; }
+.sync-error .sync-dot { background: #f87171; }
+.sync-no-config { background: rgba(139,92,246,0.10); color: #7c3aed; }
+.sync-no-config .sync-dot { background: #8b5cf6; }
+@keyframes syncPulse {
+    0%,100% { opacity:1; transform: scale(1); }
+    50%      { opacity:.4; transform: scale(1.3); }
+}
+
+/* Botão instalar PWA */
+.pwa-install-btn {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 8px 18px;
+    background: linear-gradient(135deg, var(--zen-primary) 0%, var(--zen-primary-light) 100%);
+    border: none;
+    border-radius: 20px;
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(139,92,246,0.3);
+}
+.pwa-install-btn.show { display: inline-flex; }
+.pwa-install-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(139,92,246,0.4); }
+
+/* ==========================================
+   TELA DE LOGIN
+   ========================================== */
+#loginScreen {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--zen-bg);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 24px;
+    background-image:
+        radial-gradient(circle at 10% 20%, rgba(16,185,129,0.07) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(139,92,246,0.07) 0%, transparent 40%);
+}
+#loginScreen.show { display: flex; }
+.login-card {
+    background: white;
+    border-radius: 28px;
+    padding: 40px 36px;
+    max-width: 380px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(139,92,246,0.12);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+.login-logo {
+    width: 72px; height: 72px;
+    background: linear-gradient(135deg, var(--zen-primary) 0%, var(--zen-primary-light) 100%);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 25px rgba(139,92,246,0.35);
+    animation: zenPulse 4s ease-in-out infinite;
+}
+.login-logo svg { width: 36px; height: 36px; color: white; }
+.login-card h1 { font-size: 26px; font-weight: 800; color: var(--zen-text); }
+.login-card h1 span {
+    background: linear-gradient(135deg, var(--zen-primary) 0%, var(--zen-primary-light) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.login-card p { color: var(--zen-text-secondary); font-size: 14px; line-height: 1.6; }
+.google-login-btn {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 24px;
+    background: white;
+    border: 2px solid var(--zen-border);
+    border-radius: 14px;
+    font-size: 15px; font-weight: 600; color: var(--zen-text);
+    cursor: pointer; transition: all 0.3s ease;
+    width: 100%; justify-content: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+.google-login-btn:hover {
+    border-color: var(--zen-primary);
+    box-shadow: 0 6px 20px rgba(139,92,246,0.15);
+    transform: translateY(-2px);
+}
+.google-login-btn svg { width: 22px; height: 22px; flex-shrink: 0; }
+.user-info {
+    display: none; align-items: center; gap: 10px;
+    padding: 6px 12px 6px 6px;
+    background: var(--zen-accent);
+    border-radius: 20px;
+    font-size: 12px; font-weight: 600; color: var(--zen-primary-dark);
+    position: absolute;
+    top: 16px; right: 20px;
+}
+.user-info.show { display: inline-flex; }
+.user-avatar { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 2px solid var(--zen-primary); }
+.logout-btn {
+    background: none; border: none; color: var(--zen-text-secondary);
+    cursor: pointer; font-size: 11px; padding: 2px 8px; border-radius: 10px; transition: all 0.2s;
+}
+.logout-btn:hover { background: var(--zen-red); color: white; }
+
+/* Botão de login para modo offline */
+.login-prompt-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    padding: 6px 14px;
+    background: linear-gradient(135deg, var(--zen-primary) 0%, var(--zen-primary-light) 100%);
+    border: none;
+    border-radius: 20px;
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 12px rgba(139,92,246,0.3);
+}
+.login-prompt-btn:hover { transform: translateY(-1px); box-shadow: 0 5px 16px rgba(139,92,246,0.4); }
+.login-prompt-btn.hidden { display: none; }
+
+.skip-login-btn {
+    background: none;
+    border: none;
+    color: var(--zen-text-secondary);
+    font-size: 13px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 10px;
+    transition: all 0.2s;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+.skip-login-btn:hover { color: var(--zen-primary); }
+
 </style>
+
 </head>
 <body>
+    <!-- TELA DE LOGIN -->
+    <div id="loginScreen">
+        <div class="login-card">
+            <div class="login-logo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <h1>ZenTask <span>Pro</span></h1>
+            <p>Organize suas tarefas com serenidade.<br>Entre com sua conta Google para sincronizar em todos os seus dispositivos.</p>
+            <button class="google-login-btn" id="googleLoginBtn">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                </svg>
+                Entrar com Google
+            </button>
+            <button class="skip-login-btn" id="skipLoginBtn">Continuar sem login (só offline)</button>
+        </div>
+    </div>
     <div class="app-container">
         <!-- CABECALHO -->
         <header class="app-header">
@@ -1613,6 +1846,27 @@ input[type="time"] {
                     <div class="streak-status" id="streakStatus">Comece sua sequência!</div>
                 </div>
             </div>
+
+            <!-- Status de sincronização Firebase -->
+            <div id="syncStatus" class="sync-status sync-connecting">
+                <span class="sync-dot"></span>
+                <span class="sync-label" id="syncLabel">Conectando...</span>
+            </div>
+            <!-- Botão para logar quando offline -->
+            <button class="login-prompt-btn hidden" id="loginPromptBtn">
+                ☁️ Entrar para sincronizar
+            </button>
+
+            <!-- Info do usuário logado (canto superior direito) -->
+            <div class="user-info" id="userInfo">
+                <img class="user-avatar" id="userAvatar" src="" alt="">
+                <span id="userName"></span>
+                <button class="logout-btn" id="logoutBtn">Sair</button>
+            </div>
+
+            <button class="pwa-install-btn" id="pwaInstallBtn">
+                ⬇️ Instalar App (uso offline)
+            </button>
 
             <!-- Botão Gerenciar Categorias -->
             <button class="manage-categories-btn" id="manageCategoriesBtn">
@@ -2087,10 +2341,154 @@ input[type="time"] {
             renderizar();
             atualizarStreak();
 
-            // Verificação automática a cada minuto para tarefas atrasadas
-            setInterval(function() {
-                verificarTarefasAtrasadas();
-            }, 60000); // 60 segundos = 1 minuto
+            setInterval(function() { verificarTarefasAtrasadas(); }, 60000);
+
+            // PWA: botão de instalação
+            var pwaBtn = document.getElementById('pwaInstallBtn');
+            var deferredPrompt = null;
+            window.addEventListener('beforeinstallprompt', function(e) {
+                e.preventDefault();
+                deferredPrompt = e;
+                pwaBtn.classList.add('show');
+            });
+            pwaBtn.addEventListener('click', function() {
+                if (!deferredPrompt) return;
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then(function() {
+                    deferredPrompt = null;
+                    pwaBtn.classList.remove('show');
+                });
+            });
+
+            // ── Autenticação Firebase ──────────────────────────────
+            var fbWait = 0;
+            function tryInitAuth() {
+                var fb = getFirebase();
+                if (!fb) {
+                    fbWait++;
+                    if (fbWait < 30) { setTimeout(tryInitAuth, 300); }
+                    return;
+                }
+                if (!firebaseConfigured) {
+                    setSyncStatus('no-config', '⚙️ Firebase não configurado');
+                    return;
+                }
+
+                // Botão de login Google
+                var loginBtn = document.getElementById('googleLoginBtn');
+                loginBtn.addEventListener('click', function() {
+                    fb.signInWithPopup(fb.auth, fb.provider).catch(function(e) {
+                        console.error('Login error:', e);
+                        alert('Erro ao fazer login: ' + e.message);
+                    });
+                });
+
+                // Botão continuar sem login
+                var skipBtn = document.getElementById('skipLoginBtn');
+                skipBtn.addEventListener('click', function() {
+                    var loginScreen = document.getElementById('loginScreen');
+                    loginScreen.classList.remove('show');
+                    setSyncStatus('offline', '📴 Modo offline');
+                    document.getElementById('loginPromptBtn').classList.remove('hidden');
+                });
+
+                // Botão "entrar para sincronizar" (aparece no modo offline)
+                var loginPromptBtn = document.getElementById('loginPromptBtn');
+                loginPromptBtn.addEventListener('click', function() {
+                    fb.signInWithPopup(fb.auth, fb.provider).catch(function(e) {
+                        if (e.code === 'auth/unauthorized-domain') {
+                            alert('Domínio não autorizado.\n\nAdicione "' + location.hostname + '" nos domínios autorizados do Firebase:\nconsole.firebase.google.com → Authentication → Settings → Domínios autorizados');
+                        } else if (e.code !== 'auth/popup-closed-by-user') {
+                            alert('Erro ao fazer login: ' + e.message);
+                        }
+                    });
+                });
+
+                // Botão de logout
+                var logoutBtn = document.getElementById('logoutBtn');
+                logoutBtn.addEventListener('click', function() {
+                    fb.signOut(fb.auth);
+                });
+
+                // Observar estado de autenticação
+                fb.onAuthStateChanged(fb.auth, function(user) {
+                    var loginScreen = document.getElementById('loginScreen');
+                    var userInfo = document.getElementById('userInfo');
+                    var userAvatar = document.getElementById('userAvatar');
+                    var userNameEl = document.getElementById('userName');
+
+                    if (user) {
+                        // Usuário logado
+                        currentUser = user;
+                        loginScreen.classList.remove('show');
+                        userInfo.classList.add('show');
+                        userAvatar.src = user.photoURL || '';
+                        userNameEl.textContent = user.displayName ? user.displayName.split(' ')[0] : user.email;
+                        document.getElementById('loginPromptBtn').classList.add('hidden');
+                        setupFirebaseListeners(fb);
+                    } else {
+                        // Não logado — mostrar tela de login
+                        currentUser = null;
+                        _fbListenersActive = false;
+                        loginScreen.classList.add('show');
+                        userInfo.classList.remove('show');
+                        setSyncStatus('connecting', 'Faça login para sincronizar');
+                    }
+                });
+            }
+            setTimeout(tryInitAuth, 400);
+        }
+
+        // ── Listeners em tempo real do Firebase ───────────────────────
+        var _fbListenersActive = false;
+        var _ignoreNextUpdate = false; // evita loop de escrita→leitura
+
+        function setupFirebaseListeners(fb) {
+            if (_fbListenersActive) return;
+            _fbListenersActive = true;
+
+            setSyncStatus('connecting', 'Sincronizando...');
+
+            fb.onValue(fb.ref(fb.db, '.info/connected'), function(snap) {
+                if (snap.val() === true) {
+                    setSyncStatus('online', '☁️ Sincronizado');
+                } else {
+                    setSyncStatus('offline', '📴 Offline (dados salvos localmente)');
+                }
+            });
+
+            fb.onValue(fb.ref(fb.db, userPath('tarefas')), function(snap) {
+                if (_ignoreNextUpdate) { _ignoreNextUpdate = false; return; }
+                var data = snap.val();
+                if (data !== null) {
+                    tarefas = Array.isArray(data) ? data : Object.values(data);
+                    localStorage.setItem('tarefasZenUltimate', JSON.stringify(tarefas));
+                    renderizar();
+                    atualizarStreak();
+                }
+            });
+
+            fb.onValue(fb.ref(fb.db, userPath('categorias')), function(snap) {
+                if (_ignoreNextUpdate) return;
+                var data = snap.val();
+                if (data !== null) {
+                    categorias = Array.isArray(data) ? data : Object.values(data);
+                    localStorage.setItem('categoriasZenUltimate', JSON.stringify(categorias));
+                    renderizarCategorias();
+                    renderizarCategoriasLista();
+                    renderizarCategoryFilters();
+                }
+            });
+
+            fb.onValue(fb.ref(fb.db, userPath('streak')), function(snap) {
+                if (_ignoreNextUpdate) return;
+                var data = snap.val();
+                if (data !== null) {
+                    streak = data;
+                    localStorage.setItem('streakZenUltimate', JSON.stringify(streak));
+                    renderizarStreak();
+                }
+            });
         }
 
         // Função para verificar e atualizar status de tarefas atrasadas
@@ -2233,6 +2631,12 @@ input[type="time"] {
 
         function salvarCategorias() {
             localStorage.setItem('categoriasZenUltimate', JSON.stringify(categorias));
+            var fb = getFirebase();
+            if (!fb || !firebaseConfigured || !currentUser) return;
+            try {
+                fb.set(fb.ref(fb.db, userPath('categorias')), categorias)
+                  .catch(function(e){ console.warn('Firebase write error:', e); });
+            } catch(e) { console.warn('Firebase error:', e); }
         }
 
         function renderizarCategorias() {
@@ -2483,8 +2887,41 @@ input[type="time"] {
             setTimeout(function() { editTextoEl.focus(); }, 100);
         }
 
+        // ── Firebase helpers ─────────────────────────────────────────
+        var _fb = null;
+        var firebaseConfigured = false;
+        var currentUser = null;
+
+        function getFirebase() {
+            if (!_fb && window._firebase) {
+                _fb = window._firebase;
+                var scriptText = '';
+                document.querySelectorAll('script[type="module"]').forEach(function(s){ scriptText += s.textContent; });
+                firebaseConfigured = !scriptText.includes('SUA_API_KEY') && !scriptText.includes('SEU_PROJETO');
+            }
+            return _fb;
+        }
+
+        function userPath(subpath) {
+            return 'users/' + currentUser.uid + '/' + subpath;
+        }
+
+        function setSyncStatus(state, text) {
+            var el = document.getElementById('syncStatus');
+            var lb = document.getElementById('syncLabel');
+            if (!el) return;
+            el.className = 'sync-status sync-' + state;
+            lb.textContent = text;
+        }
+
         function salvar() {
             localStorage.setItem('tarefasZenUltimate', JSON.stringify(tarefas));
+            var fb = getFirebase();
+            if (!fb || !firebaseConfigured || !currentUser) return;
+            try {
+                fb.set(fb.ref(fb.db, userPath('tarefas')), tarefas)
+                  .catch(function(e){ console.warn('Firebase write error:', e); });
+            } catch(e) { console.warn('Firebase error:', e); }
         }
 
         function atualizarStreak() {
@@ -2524,6 +2961,12 @@ input[type="time"] {
 
         function salvarStreak() {
             localStorage.setItem('streakZenUltimate', JSON.stringify(streak));
+            var fb = getFirebase();
+            if (!fb || !firebaseConfigured || !currentUser) return;
+            try {
+                fb.set(fb.ref(fb.db, userPath('streak')), streak)
+                  .catch(function(e){ console.warn('Firebase write error:', e); });
+            } catch(e) { console.warn('Firebase error:', e); }
         }
 
         function renderizarStreak() {
@@ -2782,6 +3225,127 @@ input[type="time"] {
                 toast.classList.remove('show');
             }, 3000);
         }
+
+        // ── Sistema de Notificações de Prazo ─────────────────────────
+        // Guarda quais notificações já foram enviadas nesta sessão
+        var notificacoesEnviadas = JSON.parse(localStorage.getItem('zenNotificacoes') || '{}');
+
+        function salvarNotificacoesEnviadas() {
+            localStorage.setItem('zenNotificacoes', JSON.stringify(notificacoesEnviadas));
+        }
+
+        function verificarNotificacoesPrazo() {
+            if (!currentUser || !currentUser.email) return;
+            var agora = new Date();
+
+            tarefas.forEach(function(tarefa) {
+                if (tarefa.concluida || !tarefa.dataLimite) return;
+
+                var prazo = new Date(tarefa.dataLimite + 'T' + (tarefa.horaLimite || '23:59'));
+                var criadaEm = new Date(tarefa.createdAt);
+                var diffPrazo = prazo - agora;           // ms até o prazo
+                var idadeTarefa = agora - criadaEm;      // ms desde criação
+
+                if (diffPrazo < 0) return; // já atrasada, não notifica
+
+                var MS_1DIA  = 24 * 60 * 60 * 1000;
+                var MS_1HORA = 60 * 60 * 1000;
+                var MS_10MIN  = 10 * 60 * 1000;
+
+                var tipoNotif = null;
+
+                // Situação 1: tarefa criada há +2 dias e falta 1 dia para o prazo
+                if (idadeTarefa >= 2 * MS_1DIA && diffPrazo <= MS_1DIA && diffPrazo > MS_1HORA) {
+                    tipoNotif = '1dia';
+                }
+                // Situação 2: tarefa criada há +24h e falta 1h para o prazo
+                else if (idadeTarefa >= MS_1DIA && diffPrazo <= MS_1HORA && diffPrazo > MS_10MIN) {
+                    tipoNotif = '1hora';
+                }
+                // Situação 3: tarefa criada há +1h e falta 1 min para o prazo
+                else if (idadeTarefa >= MS_1HORA && diffPrazo <= MS_10MIN) {
+                    tipoNotif = '10min';
+                }
+
+                if (!tipoNotif) return;
+
+                var chave = tarefa.id + '_' + tipoNotif;
+                if (notificacoesEnviadas[chave]) return; // já enviou
+
+                notificacoesEnviadas[chave] = true;
+                salvarNotificacoesEnviadas();
+                enviarEmailNotificacao(tarefa, tipoNotif, prazo);
+            });
+        }
+
+        function enviarEmailNotificacao(tarefa, tipo, prazo) {
+            var mensagens = {
+                '1dia': '⏰ Falta 1 dia para o prazo!',
+                '1hora': '🚨 Falta apenas 1 hora para o prazo!',
+                '10min': '🔴 URGENTE: Falta 10 minuto para o prazo!'
+            };
+
+            var assunto = mensagens[tipo] + ' — ' + tarefa.texto;
+            var prazoFormatado = prazo.toLocaleString('pt-BR', {
+                day: '2-digit', month: '2-digit', year: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+
+            // Usa mailto como fallback (funciona sem servidor)
+            var corpo = 'Olá!\n\n' +
+                mensagens[tipo] + '\n\n' +
+                'Tarefa: ' + tarefa.texto + '\n' +
+                'Prazo: ' + prazoFormatado + '\n' +
+                'Categoria: ' + tarefa.categoria + '\n' +
+                'Prioridade: ' + (tarefa.prioridade === 'vermelha' ? 'Alta' : tarefa.prioridade === 'amarela' ? 'Média' : 'Baixa') + '\n\n' +
+                'Acesse o ZenTask Pro para concluir essa tarefa!\n';
+
+            // Notificação nativa do browser (se permitida)
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification('ZenTask Pro — ' + mensagens[tipo], {
+                    body: tarefa.texto + '\nPrazo: ' + prazoFormatado,
+                    icon: 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'12\' fill=\'%238b5cf6\'/%3E%3C/svg%3E'
+                });
+            }
+
+            // Toast no app
+            mostrarToast(mensagens[tipo] + ' ' + tarefa.texto.substring(0, 30) + (tarefa.texto.length > 30 ? '...' : ''), '⏰');
+
+            // Abre cliente de email com mensagem pré-preenchida
+            var mailtoLink = 'mailto:' + currentUser.email +
+                '?subject=' + encodeURIComponent('[ZenTask] ' + assunto) +
+                '&body=' + encodeURIComponent(corpo);
+
+            // Cria link invisível e abre
+            var a = document.createElement('a');
+            a.href = mailtoLink;
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            setTimeout(function() { a.click(); document.body.removeChild(a); }, 1000);
+        }
+
+        function pedirPermissaoNotificacao() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+        }
+
+        // Verifica notificações a cada minuto
+        setInterval(verificarNotificacoesPrazo, 60 * 1000);
+        // Pede permissão de notificação na primeira interação
+        document.addEventListener('click', pedirPermissaoNotificacao, { once: true });
+
+        // Limpa chaves de notificação de tarefas já concluídas ou expiradas (a cada hora)
+        setInterval(function() {
+            var keysParaRemover = [];
+            Object.keys(notificacoesEnviadas).forEach(function(k) {
+                var id = parseInt(k.split('_')[0]);
+                var tarefa = tarefas.find(function(t) { return t.id === id; });
+                if (!tarefa || tarefa.concluida) keysParaRemover.push(k);
+            });
+            keysParaRemover.forEach(function(k) { delete notificacoesEnviadas[k]; });
+            if (keysParaRemover.length) salvarNotificacoesEnviadas();
+        }, 60 * 60 * 1000);
 
     })();
     </script>
