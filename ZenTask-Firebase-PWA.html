@@ -2380,17 +2380,37 @@ input[type="time"] {
             setInterval(function() { verificarTarefasAtrasadas(); }, 60000);
 
             // ── PWA: Service Worker para offline real ──────────────
+            // Substitua o registro do Service Worker antigo por este:
             if ('serviceWorker' in navigator) {
-                var swCode = [
-                    'var CACHE="zentask-v3";',
-                    'self.addEventListener("install",function(e){e.waitUntil(caches.open(CACHE).then(function(c){return c.addAll([location.pathname]);}).then(function(){return self.skipWaiting();}));});',
-                    'self.addEventListener("activate",function(e){e.waitUntil(caches.keys().then(function(ks){return Promise.all(ks.filter(function(k){return k!==CACHE;}).map(function(k){return caches.delete(k);}));}).then(function(){return self.clients.claim();}));});',
-                    'self.addEventListener("fetch",function(e){if(!e.request.url.startsWith(self.location.origin))return;e.respondWith(fetch(e.request).then(function(r){var c=r.clone();caches.open(CACHE).then(function(cache){cache.put(e.request,c);});return r;}).catch(function(){return caches.match(e.request);}));});'
-                ].join('');
-                var blob = new Blob([swCode], {type:'application/javascript'});
-                var swUrl = URL.createObjectURL(blob);
-                navigator.serviceWorker.register(swUrl).catch(function(){});
+                window.addEventListener('load', function() {
+                    var swCode = `
+                        const CACHE_NAME = 'zentask-v5-cache';
+                        const urlsToCache = ['/', location.pathname];
+
+                        self.addEventListener('install', e => {
+                            e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(urlsToCache)).then(() => self.skipWaiting()));
+                        });
+
+                        self.addEventListener('activate', e => {
+                            e.waitUntil(caches.keys().then(ks => Promise.all(ks.map(k => k !== CACHE_NAME && caches.delete(k)))).then(() => self.clients.claim()));
+                        });
+
+                        self.addEventListener('fetch', e => {
+                            if (e.request.method !== 'GET') return;
+                            e.respondWith(
+                                caches.match(e.request).then(res => res || fetch(e.request).then(fetchRes => {
+                                    let resClone = fetchRes.clone();
+                                    caches.open(CACHE_NAME).then(c => c.put(e.request, resClone));
+                                    return fetchRes;
+                                }))
+                            );
+                        });
+                    `;
+                    var blob = new Blob([swCode], { type: 'application/javascript' });
+                    navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+                });
             }
+
 
             // ── PWA: botão de instalação (Android + iOS) ──────────
             var pwaBtn = document.getElementById('pwaInstallBtn');
