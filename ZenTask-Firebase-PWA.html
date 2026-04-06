@@ -33,15 +33,14 @@
       //  🔥 CREDENCIAIS DO FIREBASE
       // ============================================================
       const firebaseConfig = {
-        apiKey: "AIzaSyAVSnWAGwNdfzM92hFSHHE1ZYx9Qa-1bdE",
-        authDomain: "zentask-firebase.firebaseapp.com",
-        databaseURL: "https://zentask-firebase-default-rtdb.firebaseio.com",
-        projectId: "zentask-firebase",
-        storageBucket: "zentask-firebase.firebasestorage.app",
-        messagingSenderId: "912525998628",
-        appId: "1:912525998628:web:a9be0680d953f4f2c776b1",
-        measurementId: "G-4Z7JCJB6Q8"
-        };
+        apiKey:            "AIzaSyB8-m7ZCp1_vR7Na3Z_TFvcaTqrTC_s04I",
+        authDomain:        "zentask-99f1e.firebaseapp.com",
+        databaseURL:       "https://zentask-99f1e-default-rtdb.firebaseio.com",
+        projectId:         "zentask-99f1e",
+        storageBucket:     "zentask-99f1e.firebasestorage.app",
+        messagingSenderId: "951207615110",
+        appId:             "1:951207615110:web:d2c43c55573b287d6e4f07"
+      };
 
       const app      = initializeApp(firebaseConfig);
       const db       = getDatabase(app);
@@ -135,7 +134,7 @@ body {
     padding: 28px 24px;
     box-shadow: 0 8px 40px var(--zen-card-shadow);
     position: relative;
-    overflow: hidden;
+    overflow: visible;
     text-align: center;
 }
 
@@ -1670,6 +1669,26 @@ input[type="time"] {
 .pwa-install-btn.show { display: inline-flex; }
 .pwa-install-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(139,92,246,0.4); }
 
+/* Botão de login para modo offline */
+.login-prompt-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    padding: 6px 14px;
+    background: linear-gradient(135deg, var(--zen-primary) 0%, var(--zen-primary-light) 100%);
+    border: none;
+    border-radius: 20px;
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 12px rgba(139,92,246,0.3);
+}
+.login-prompt-btn:hover { transform: translateY(-1px); }
+.login-prompt-btn.hidden { display: none; }
+
 /* ==========================================
    TELA DE LOGIN
    ========================================== */
@@ -1734,41 +1753,37 @@ input[type="time"] {
 }
 .google-login-btn svg { width: 22px; height: 22px; flex-shrink: 0; }
 .user-info {
-    display: none; align-items: center; gap: 10px;
-    padding: 6px 12px 6px 6px;
+    display: none; align-items: center; gap: 6px;
+    padding: 5px 10px 5px 5px;
     background: var(--zen-accent);
     border-radius: 20px;
-    font-size: 12px; font-weight: 600; color: var(--zen-primary-dark);
+    font-size: 11px; font-weight: 600; color: var(--zen-primary-dark);
     position: absolute;
-    top: 16px; right: 20px;
+    top: 12px; right: 12px;
+    max-width: 150px;
+    z-index: 10;
 }
 .user-info.show { display: inline-flex; }
-.user-avatar { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 2px solid var(--zen-primary); }
+.user-avatar {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--zen-primary);
+    flex-shrink: 0;
+    background: var(--zen-primary);
+}
+#userName {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 60px;
+}
 .logout-btn {
     background: none; border: none; color: var(--zen-text-secondary);
-    cursor: pointer; font-size: 11px; padding: 2px 8px; border-radius: 10px; transition: all 0.2s;
+    cursor: pointer; font-size: 10px; padding: 2px 5px; border-radius: 8px;
+    transition: all 0.2s; flex-shrink: 0; white-space: nowrap;
 }
 .logout-btn:hover { background: var(--zen-red); color: white; }
-
-/* Botão de login para modo offline */
-.login-prompt-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: 6px;
-    padding: 6px 14px;
-    background: linear-gradient(135deg, var(--zen-primary) 0%, var(--zen-primary-light) 100%);
-    border: none;
-    border-radius: 20px;
-    color: white;
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 3px 12px rgba(139,92,246,0.3);
-}
-.login-prompt-btn:hover { transform: translateY(-1px); box-shadow: 0 5px 16px rgba(139,92,246,0.4); }
-.login-prompt-btn.hidden { display: none; }
 
 .skip-login-btn {
     background: none;
@@ -1865,7 +1880,7 @@ input[type="time"] {
             </div>
 
             <button class="pwa-install-btn" id="pwaInstallBtn">
-                ⬇️ Instalar App (uso offline)
+                📲 Instalar App
             </button>
 
             <!-- Botão Gerenciar Categorias -->
@@ -2343,21 +2358,49 @@ input[type="time"] {
 
             setInterval(function() { verificarTarefasAtrasadas(); }, 60000);
 
-            // PWA: botão de instalação
+            // ── PWA: Service Worker para offline real ──────────────
+            if ('serviceWorker' in navigator) {
+                var swCode = [
+                    'var CACHE="zentask-v3";',
+                    'self.addEventListener("install",function(e){e.waitUntil(caches.open(CACHE).then(function(c){return c.addAll([location.pathname]);}).then(function(){return self.skipWaiting();}));});',
+                    'self.addEventListener("activate",function(e){e.waitUntil(caches.keys().then(function(ks){return Promise.all(ks.filter(function(k){return k!==CACHE;}).map(function(k){return caches.delete(k);}));}).then(function(){return self.clients.claim();}));});',
+                    'self.addEventListener("fetch",function(e){if(!e.request.url.startsWith(self.location.origin))return;e.respondWith(fetch(e.request).then(function(r){var c=r.clone();caches.open(CACHE).then(function(cache){cache.put(e.request,c);});return r;}).catch(function(){return caches.match(e.request);}));});'
+                ].join('');
+                var blob = new Blob([swCode], {type:'application/javascript'});
+                var swUrl = URL.createObjectURL(blob);
+                navigator.serviceWorker.register(swUrl).catch(function(){});
+            }
+
+            // ── PWA: botão de instalação (Android + iOS) ──────────
             var pwaBtn = document.getElementById('pwaInstallBtn');
             var deferredPrompt = null;
+
             window.addEventListener('beforeinstallprompt', function(e) {
                 e.preventDefault();
                 deferredPrompt = e;
                 pwaBtn.classList.add('show');
             });
+
+            var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+            var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+            if (isIOS && !isStandalone) {
+                pwaBtn.classList.add('show');
+            }
+
             pwaBtn.addEventListener('click', function() {
-                if (!deferredPrompt) return;
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then(function() {
-                    deferredPrompt = null;
-                    pwaBtn.classList.remove('show');
-                });
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then(function() {
+                        deferredPrompt = null;
+                        pwaBtn.classList.remove('show');
+                    });
+                } else if (isIOS && !isStandalone) {
+                    alert('Para instalar no iPhone/iPad:\n\n1. Toque no ícone ⬆️ (compartilhar) na barra do Safari\n2. Selecione "Adicionar à Tela de Início"\n3. Toque em "Adicionar"');
+                }
+            });
+
+            window.addEventListener('appinstalled', function() {
+                pwaBtn.classList.remove('show');
             });
 
             // ── Autenticação Firebase ──────────────────────────────
@@ -2375,42 +2418,38 @@ input[type="time"] {
                 }
 
                 // Botão de login Google
-                var loginBtn = document.getElementById('googleLoginBtn');
-                loginBtn.addEventListener('click', function() {
-                    fb.signInWithPopup(fb.auth, fb.provider).catch(function(e) {
-                        console.error('Login error:', e);
-                        alert('Erro ao fazer login: ' + e.message);
-                    });
-                });
-
-                // Botão continuar sem login
-                var skipBtn = document.getElementById('skipLoginBtn');
-                skipBtn.addEventListener('click', function() {
-                    var loginScreen = document.getElementById('loginScreen');
-                    loginScreen.classList.remove('show');
-                    setSyncStatus('offline', '📴 Modo offline');
-                    document.getElementById('loginPromptBtn').classList.remove('hidden');
-                });
-
-                // Botão "entrar para sincronizar" (aparece no modo offline)
-                var loginPromptBtn = document.getElementById('loginPromptBtn');
-                loginPromptBtn.addEventListener('click', function() {
+                document.getElementById('googleLoginBtn').addEventListener('click', function() {
                     fb.signInWithPopup(fb.auth, fb.provider).catch(function(e) {
                         if (e.code === 'auth/unauthorized-domain') {
-                            alert('Domínio não autorizado.\n\nAdicione "' + location.hostname + '" nos domínios autorizados do Firebase:\nconsole.firebase.google.com → Authentication → Settings → Domínios autorizados');
+                            alert('Domínio não autorizado.\nAdicione "' + location.hostname + '" em:\nFirebase → Authentication → Settings → Domínios autorizados');
                         } else if (e.code !== 'auth/popup-closed-by-user') {
                             alert('Erro ao fazer login: ' + e.message);
                         }
                     });
                 });
 
+                // Botão continuar sem login
+                document.getElementById('skipLoginBtn').addEventListener('click', function() {
+                    document.getElementById('loginScreen').classList.remove('show');
+                    setSyncStatus('offline', '📴 Modo offline');
+                    document.getElementById('loginPromptBtn').classList.remove('hidden');
+                });
+
+                // Botão entrar para sincronizar (modo offline)
+                document.getElementById('loginPromptBtn').addEventListener('click', function() {
+                    fb.signInWithPopup(fb.auth, fb.provider).catch(function(e) {
+                        if (e.code !== 'auth/popup-closed-by-user') {
+                            alert('Erro ao fazer login: ' + e.message);
+                        }
+                    });
+                });
+
                 // Botão de logout
-                var logoutBtn = document.getElementById('logoutBtn');
-                logoutBtn.addEventListener('click', function() {
+                document.getElementById('logoutBtn').addEventListener('click', function() {
                     fb.signOut(fb.auth);
                 });
 
-                // Observar estado de autenticação
+                // Estado de autenticação
                 fb.onAuthStateChanged(fb.auth, function(user) {
                     var loginScreen = document.getElementById('loginScreen');
                     var userInfo = document.getElementById('userInfo');
@@ -2418,7 +2457,6 @@ input[type="time"] {
                     var userNameEl = document.getElementById('userName');
 
                     if (user) {
-                        // Usuário logado
                         currentUser = user;
                         loginScreen.classList.remove('show');
                         userInfo.classList.add('show');
@@ -2427,7 +2465,6 @@ input[type="time"] {
                         document.getElementById('loginPromptBtn').classList.add('hidden');
                         setupFirebaseListeners(fb);
                     } else {
-                        // Não logado — mostrar tela de login
                         currentUser = null;
                         _fbListenersActive = false;
                         loginScreen.classList.add('show');
@@ -3225,127 +3262,6 @@ input[type="time"] {
                 toast.classList.remove('show');
             }, 3000);
         }
-
-        // ── Sistema de Notificações de Prazo ─────────────────────────
-        // Guarda quais notificações já foram enviadas nesta sessão
-        var notificacoesEnviadas = JSON.parse(localStorage.getItem('zenNotificacoes') || '{}');
-
-        function salvarNotificacoesEnviadas() {
-            localStorage.setItem('zenNotificacoes', JSON.stringify(notificacoesEnviadas));
-        }
-
-        function verificarNotificacoesPrazo() {
-            if (!currentUser || !currentUser.email) return;
-            var agora = new Date();
-
-            tarefas.forEach(function(tarefa) {
-                if (tarefa.concluida || !tarefa.dataLimite) return;
-
-                var prazo = new Date(tarefa.dataLimite + 'T' + (tarefa.horaLimite || '23:59'));
-                var criadaEm = new Date(tarefa.createdAt);
-                var diffPrazo = prazo - agora;           // ms até o prazo
-                var idadeTarefa = agora - criadaEm;      // ms desde criação
-
-                if (diffPrazo < 0) return; // já atrasada, não notifica
-
-                var MS_1DIA  = 24 * 60 * 60 * 1000;
-                var MS_1HORA = 60 * 60 * 1000;
-                var MS_10MIN  = 10 * 60 * 1000;
-
-                var tipoNotif = null;
-
-                // Situação 1: tarefa criada há +2 dias e falta 1 dia para o prazo
-                if (idadeTarefa >= 2 * MS_1DIA && diffPrazo <= MS_1DIA && diffPrazo > MS_1HORA) {
-                    tipoNotif = '1dia';
-                }
-                // Situação 2: tarefa criada há +24h e falta 1h para o prazo
-                else if (idadeTarefa >= MS_1DIA && diffPrazo <= MS_1HORA && diffPrazo > MS_10MIN) {
-                    tipoNotif = '1hora';
-                }
-                // Situação 3: tarefa criada há +1h e falta 1 min para o prazo
-                else if (idadeTarefa >= MS_1HORA && diffPrazo <= MS_10MIN) {
-                    tipoNotif = '10min';
-                }
-
-                if (!tipoNotif) return;
-
-                var chave = tarefa.id + '_' + tipoNotif;
-                if (notificacoesEnviadas[chave]) return; // já enviou
-
-                notificacoesEnviadas[chave] = true;
-                salvarNotificacoesEnviadas();
-                enviarEmailNotificacao(tarefa, tipoNotif, prazo);
-            });
-        }
-
-        function enviarEmailNotificacao(tarefa, tipo, prazo) {
-            var mensagens = {
-                '1dia': '⏰ Falta 1 dia para o prazo!',
-                '1hora': '🚨 Falta apenas 1 hora para o prazo!',
-                '10min': '🔴 URGENTE: Falta 10 minuto para o prazo!'
-            };
-
-            var assunto = mensagens[tipo] + ' — ' + tarefa.texto;
-            var prazoFormatado = prazo.toLocaleString('pt-BR', {
-                day: '2-digit', month: '2-digit', year: 'numeric',
-                hour: '2-digit', minute: '2-digit'
-            });
-
-            // Usa mailto como fallback (funciona sem servidor)
-            var corpo = 'Olá!\n\n' +
-                mensagens[tipo] + '\n\n' +
-                'Tarefa: ' + tarefa.texto + '\n' +
-                'Prazo: ' + prazoFormatado + '\n' +
-                'Categoria: ' + tarefa.categoria + '\n' +
-                'Prioridade: ' + (tarefa.prioridade === 'vermelha' ? 'Alta' : tarefa.prioridade === 'amarela' ? 'Média' : 'Baixa') + '\n\n' +
-                'Acesse o ZenTask Pro para concluir essa tarefa!\n';
-
-            // Notificação nativa do browser (se permitida)
-            if ('Notification' in window && Notification.permission === 'granted') {
-                new Notification('ZenTask Pro — ' + mensagens[tipo], {
-                    body: tarefa.texto + '\nPrazo: ' + prazoFormatado,
-                    icon: 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'12\' fill=\'%238b5cf6\'/%3E%3C/svg%3E'
-                });
-            }
-
-            // Toast no app
-            mostrarToast(mensagens[tipo] + ' ' + tarefa.texto.substring(0, 30) + (tarefa.texto.length > 30 ? '...' : ''), '⏰');
-
-            // Abre cliente de email com mensagem pré-preenchida
-            var mailtoLink = 'mailto:' + currentUser.email +
-                '?subject=' + encodeURIComponent('[ZenTask] ' + assunto) +
-                '&body=' + encodeURIComponent(corpo);
-
-            // Cria link invisível e abre
-            var a = document.createElement('a');
-            a.href = mailtoLink;
-            a.style.display = 'none';
-            document.body.appendChild(a);
-            setTimeout(function() { a.click(); document.body.removeChild(a); }, 1000);
-        }
-
-        function pedirPermissaoNotificacao() {
-            if ('Notification' in window && Notification.permission === 'default') {
-                Notification.requestPermission();
-            }
-        }
-
-        // Verifica notificações a cada minuto
-        setInterval(verificarNotificacoesPrazo, 60 * 1000);
-        // Pede permissão de notificação na primeira interação
-        document.addEventListener('click', pedirPermissaoNotificacao, { once: true });
-
-        // Limpa chaves de notificação de tarefas já concluídas ou expiradas (a cada hora)
-        setInterval(function() {
-            var keysParaRemover = [];
-            Object.keys(notificacoesEnviadas).forEach(function(k) {
-                var id = parseInt(k.split('_')[0]);
-                var tarefa = tarefas.find(function(t) { return t.id === id; });
-                if (!tarefa || tarefa.concluida) keysParaRemover.push(k);
-            });
-            keysParaRemover.forEach(function(k) { delete notificacoesEnviadas[k]; });
-            if (keysParaRemover.length) salvarNotificacoesEnviadas();
-        }, 60 * 60 * 1000);
 
     })();
     </script>
