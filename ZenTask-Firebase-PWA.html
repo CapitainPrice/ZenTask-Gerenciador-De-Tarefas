@@ -27,7 +27,7 @@
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
       import { getDatabase, ref, set, onValue, remove, update } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
-      import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+      import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
       // ============================================================
       //  🔥 CREDENCIAIS DO FIREBASE
@@ -47,7 +47,7 @@
       const auth     = getAuth(app);
       const provider = new GoogleAuthProvider();
 
-      window._firebase = { db, ref, set, onValue, remove, update, auth, provider, signInWithPopup, signOut, onAuthStateChanged };
+      window._firebase = { db, ref, set, onValue, remove, update, auth, provider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged };
     </script>
 
 
@@ -2419,13 +2419,19 @@ input[type="time"] {
 
                 // Botão de login Google
                 document.getElementById('googleLoginBtn').addEventListener('click', function() {
-                    fb.signInWithPopup(fb.auth, fb.provider).catch(function(e) {
-                        if (e.code === 'auth/unauthorized-domain') {
-                            alert('Domínio não autorizado.\nAdicione "' + location.hostname + '" em:\nFirebase → Authentication → Settings → Domínios autorizados');
-                        } else if (e.code !== 'auth/popup-closed-by-user') {
-                            alert('Erro ao fazer login: ' + e.message);
-                        }
-                    });
+                    var isMobile = /android|iphone|ipad|ipod/i.test(navigator.userAgent);
+                    if (isMobile) {
+                        // Mobile: usa redirect (mais confiável que popup no Android)
+                        fb.signInWithRedirect(fb.auth, fb.provider);
+                    } else {
+                        fb.signInWithPopup(fb.auth, fb.provider).catch(function(e) {
+                            if (e.code === 'auth/unauthorized-domain') {
+                                alert('Adicione "' + location.hostname + '" nos domínios autorizados:\nFirebase → Authentication → Settings → Domínios autorizados');
+                            } else if (e.code !== 'auth/popup-closed-by-user') {
+                                alert('Erro: ' + e.message);
+                            }
+                        });
+                    }
                 });
 
                 // Botão continuar sem login
@@ -2437,16 +2443,28 @@ input[type="time"] {
 
                 // Botão entrar para sincronizar (modo offline)
                 document.getElementById('loginPromptBtn').addEventListener('click', function() {
-                    fb.signInWithPopup(fb.auth, fb.provider).catch(function(e) {
-                        if (e.code !== 'auth/popup-closed-by-user') {
-                            alert('Erro ao fazer login: ' + e.message);
-                        }
-                    });
+                    var isMobile = /android|iphone|ipad|ipod/i.test(navigator.userAgent);
+                    if (isMobile) {
+                        fb.signInWithRedirect(fb.auth, fb.provider);
+                    } else {
+                        fb.signInWithPopup(fb.auth, fb.provider).catch(function(e) {
+                            if (e.code !== 'auth/popup-closed-by-user') alert('Erro: ' + e.message);
+                        });
+                    }
                 });
 
                 // Botão de logout
                 document.getElementById('logoutBtn').addEventListener('click', function() {
                     fb.signOut(fb.auth);
+                });
+
+                // Processa resultado do redirect (mobile após login Google)
+                fb.getRedirectResult(fb.auth).then(function(result) {
+                    // resultado já tratado pelo onAuthStateChanged
+                }).catch(function(e) {
+                    if (e.code === 'auth/unauthorized-domain') {
+                        alert('Adicione "' + location.hostname + '" nos domínios autorizados:\nFirebase → Authentication → Settings → Domínios autorizados');
+                    }
                 });
 
                 // Estado de autenticação
@@ -3262,6 +3280,123 @@ input[type="time"] {
                 toast.classList.remove('show');
             }, 3000);
         }
+
+        // ══════════════════════════════════════════════════
+        //  SISTEMA DE NOTIFICAÇÕES DE PRAZO
+        // ══════════════════════════════════════════════════
+        var notificacoesEnviadas = JSON.parse(localStorage.getItem('zenNotificacoes') || '{}');
+
+        function salvarNotificacoesEnviadas() {
+            localStorage.setItem('zenNotificacoes', JSON.stringify(notificacoesEnviadas));
+        }
+
+        function verificarNotificacoesPrazo() {
+            if (!currentUser || !currentUser.email) return;
+            var agora = new Date();
+
+            tarefas.forEach(function(tarefa) {
+                if (tarefa.concluida || !tarefa.dataLimite) return;
+
+                var prazo    = new Date(tarefa.dataLimite + 'T' + (tarefa.horaLimite || '23:59'));
+                var criadaEm = new Date(tarefa.createdAt);
+                var diffPrazo   = prazo - agora;      // ms até o prazo
+                var idadeTarefa = agora - criadaEm;   // ms desde criação
+
+                if (diffPrazo < 0) return; // já atrasada
+
+                var MS_1DIA  = 24 * 60 * 60 * 1000;
+                var MS_1HORA = 60 * 60 * 1000;
+                var MS_10MIN = 10 * 60 * 1000;
+
+                var tipoNotif = null;
+
+                // Situação 1: criada há +2 dias, falta ≤1 dia e >1h
+                if (idadeTarefa >= 2 * MS_1DIA && diffPrazo <= MS_1DIA && diffPrazo > MS_1HORA) {
+                    tipoNotif = '1dia';
+                }
+                // Situação 2: criada há +24h, falta ≤1h e >10min
+                else if (idadeTarefa >= MS_1DIA && diffPrazo <= MS_1HORA && diffPrazo > MS_10MIN) {
+                    tipoNotif = '1hora';
+                }
+                // Situação 3: criada há +1h, falta ≤10min
+                else if (idadeTarefa >= MS_1HORA && diffPrazo <= MS_10MIN) {
+                    tipoNotif = '10min';
+                }
+
+                if (!tipoNotif) return;
+
+                var chave = tarefa.id + '_' + tipoNotif;
+                if (notificacoesEnviadas[chave]) return; // já notificou
+
+                notificacoesEnviadas[chave] = true;
+                salvarNotificacoesEnviadas();
+                dispararNotificacao(tarefa, tipoNotif, prazo);
+            });
+        }
+
+        function dispararNotificacao(tarefa, tipo, prazo) {
+            var msgs = {
+                '1dia' : '⏰ Falta 1 dia para o prazo!',
+                '1hora': '🚨 Falta apenas 1 hora para o prazo!',
+                '10min': '🔴 URGENTE: Faltam 10 minutos para o prazo!'
+            };
+            var msg = msgs[tipo];
+            var prazoFormatado = prazo.toLocaleString('pt-BR', {
+                day:'2-digit', month:'2-digit', year:'numeric',
+                hour:'2-digit', minute:'2-digit'
+            });
+
+            // Toast no app
+            mostrarToast(msg + ' ' + tarefa.texto.substring(0, 25) + (tarefa.texto.length > 25 ? '...' : ''), '⏰');
+
+            // Notificação nativa do browser
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification('ZenTask Pro — ' + msg, {
+                    body: tarefa.texto + '\nPrazo: ' + prazoFormatado,
+                    icon: 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'12\' fill=\'%238b5cf6\'/%3E%3C/svg%3E'
+                });
+            }
+
+            // Email via mailto (abre cliente de email do usuário)
+            if (currentUser && currentUser.email) {
+                var assunto = '[ZenTask] ' + msg + ' — ' + tarefa.texto;
+                var corpo = 'Olá!\n\n' + msg + '\n\n'
+                    + 'Tarefa: ' + tarefa.texto + '\n'
+                    + 'Prazo: ' + prazoFormatado + '\n'
+                    + 'Categoria: ' + tarefa.categoria + '\n'
+                    + 'Prioridade: ' + (tarefa.prioridade === 'vermelha' ? 'Alta' : tarefa.prioridade === 'amarela' ? 'Média' : 'Baixa') + '\n\n'
+                    + 'Acesse o ZenTask Pro para concluir essa tarefa!';
+                var a = document.createElement('a');
+                a.href = 'mailto:' + currentUser.email
+                    + '?subject=' + encodeURIComponent(assunto)
+                    + '&body='    + encodeURIComponent(corpo);
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                setTimeout(function() { a.click(); document.body.removeChild(a); }, 800);
+            }
+        }
+
+        // Pede permissão de notificação na primeira interação
+        document.addEventListener('click', function() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+        }, { once: true });
+
+        // Verifica notificações a cada minuto
+        setInterval(verificarNotificacoesPrazo, 60 * 1000);
+
+        // Limpa notificações de tarefas concluídas/removidas (a cada hora)
+        setInterval(function() {
+            var remover = [];
+            Object.keys(notificacoesEnviadas).forEach(function(k) {
+                var id = parseInt(k.split('_')[0]);
+                var t = tarefas.find(function(t) { return t.id === id; });
+                if (!t || t.concluida) remover.push(k);
+            });
+            remover.forEach(function(k) { delete notificacoesEnviadas[k]; });
+            if (remover.length) salvarNotificacoesEnviadas();
+        }, 60 * 60 * 1000);
 
     })();
     </script>
