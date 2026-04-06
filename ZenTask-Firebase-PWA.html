@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>ZenTask Pro - Organizador de Tarefas com Streak</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='12' fill='%238b5cf6'/%3E%3Cpath d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' fill='none' stroke='%23fff' stroke-width='2'/%3E%3C/svg%3E">
     <link rel="manifest" href="manifest.json">
@@ -21,6 +21,28 @@
             keys.forEach(function(key) { caches.delete(key); });
         });
     }
+    </script>
+
+    <!-- EmailJS SDK para envio real de e-mails -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script>
+      // ============================================================
+      //  ✉️  CONFIGURAÇÃO DO EMAILJS
+      //  1. Crie conta gratuita em https://www.emailjs.com/
+      //  2. Crie um Serviço (Gmail) e anote o Service ID
+      //  3. Crie um Template com as variáveis: {{to_email}}, {{subject}}, {{message}}
+      //  4. Copie sua Public Key em Account > API Keys
+      //  5. Cole as chaves abaixo substituindo os valores de exemplo
+      // ============================================================
+      window.EMAILJS_PUBLIC_KEY  = 'SUA_PUBLIC_KEY';   // ex: 'abc123xyz'
+      window.EMAILJS_SERVICE_ID  = 'SUA_SERVICE_ID';   // ex: 'service_xxxxxxx'
+      window.EMAILJS_TEMPLATE_ID = 'SUA_TEMPLATE_ID';  // ex: 'template_xxxxxxx'
+      if (window.EMAILJS_PUBLIC_KEY !== 'SUA_PUBLIC_KEY') {
+        emailjs.init(window.EMAILJS_PUBLIC_KEY);
+        window.EMAILJS_CONFIGURED = true;
+      } else {
+        window.EMAILJS_CONFIGURED = false;
+      }
     </script>
 
     <!-- Firebase SDK -->
@@ -1345,57 +1367,110 @@ input[type="time"] {
 /* Responsividade para Mobile */
 @media (max-width: 480px) {
     body {
-        padding: 16px 10px;
+        padding: 12px 8px;
+    }
+
+    .app-container {
+        gap: 14px;
     }
 
     .app-header {
-        padding: 24px 18px;
+        padding: 20px 16px;
         border-radius: 20px;
+    }
+
+    .header-top {
+        gap: 10px;
     }
 
     .zen-icon {
-        width: 48px;
-        height: 48px;
-        font-size: 20px;
+        width: 44px;
+        height: 44px;
+        font-size: 18px;
+        flex-shrink: 0;
     }
 
     .header-title h1 {
-        font-size: 22px;
+        font-size: 20px;
+    }
+
+    .header-title p {
+        font-size: 11px;
     }
 
     .streak-container {
-        flex-direction: column;
+        flex-direction: row;
         gap: 12px;
-    }
-
-    .streak-info {
-        text-align: center;
+        padding: 12px;
     }
 
     .streak-fire {
-        width: 50px;
-        height: 50px;
+        width: 44px;
+        height: 44px;
+        flex-shrink: 0;
     }
 
     .streak-fire-icon {
-        font-size: 32px;
+        font-size: 30px;
+    }
+
+    .streak-info {
+        text-align: left;
+        flex: 1;
+        min-width: 0;
     }
 
     .streak-count {
-        font-size: 28px;
+        font-size: 26px;
+    }
+
+    .streak-label {
+        font-size: 10px;
+    }
+
+    .user-info {
+        top: 10px;
+        right: 10px;
+        max-width: 130px;
+    }
+
+    #userName {
+        max-width: 50px;
     }
 
     .input-zen-card {
-        padding: 20px;
-        border-radius: 20px;
+        padding: 16px;
+        border-radius: 18px;
     }
 
     .category-options {
-        flex-direction: column;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .category-option {
+        flex: none;
+        min-width: 0;
     }
 
     .zen-priority-options {
         flex-direction: column;
+        gap: 8px;
+    }
+
+    .zen-priority {
+        min-width: 0;
+    }
+
+    .date-section {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .date-input-group {
+        min-width: 0;
+        width: 100%;
     }
 
     .zen-stats {
@@ -1404,22 +1479,38 @@ input[type="time"] {
     }
 
     .zen-stat-card {
-        padding: 14px 8px;
+        padding: 12px 8px;
+    }
+
+    .zen-stat-circle {
+        width: 44px;
+        height: 44px;
+        font-size: 16px;
     }
 
     .zen-task-item {
-        padding: 16px;
+        padding: 14px;
         flex-wrap: wrap;
+        gap: 10px;
     }
 
     .zen-task-content {
         width: calc(100% - 44px);
     }
 
+    .zen-task-text {
+        font-size: 14px;
+    }
+
     .zen-task-actions {
         width: 100%;
         justify-content: flex-end;
-        margin-top: 8px;
+        margin-top: 4px;
+    }
+
+    .zen-task-btn {
+        width: 40px;
+        height: 40px;
     }
 
     /* Correção dos Filtros de Categoria para Mobile */
@@ -1446,6 +1537,61 @@ input[type="time"] {
         flex-wrap: wrap;
         gap: 6px;
         width: 100%;
+    }
+
+    /* Login card mobile */
+    .login-card {
+        padding: 32px 24px;
+        border-radius: 24px;
+    }
+
+    .login-card h1 {
+        font-size: 22px;
+    }
+
+    .login-card p {
+        font-size: 13px;
+    }
+
+    .google-login-btn {
+        padding: 14px 20px;
+        font-size: 14px;
+    }
+
+    /* Modal de edição mobile */
+    .edit-modal {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    .edit-modal-content {
+        border-radius: 24px 24px 0 0;
+        max-height: 85vh;
+        padding-bottom: 32px;
+    }
+
+    /* Modal de categorias mobile */
+    .category-modal {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    .category-modal-content {
+        border-radius: 24px 24px 0 0;
+        max-height: 80vh;
+        padding-bottom: 32px;
+    }
+
+    /* Botao PWA mobile */
+    .pwa-install-btn {
+        font-size: 12px;
+        padding: 10px 18px;
+    }
+
+    /* Sync status mobile */
+    .sync-status {
+        font-size: 11px;
+        padding: 5px 12px;
     }
 }
 
@@ -1656,19 +1802,111 @@ input[type="time"] {
     align-items: center;
     gap: 8px;
     margin-top: 8px;
-    padding: 8px 18px;
+    padding: 10px 20px;
     background: linear-gradient(135deg, var(--zen-primary) 0%, var(--zen-primary-light) 100%);
     border: none;
     border-radius: 20px;
     color: white;
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 13px;
+    font-weight: 700;
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(139,92,246,0.3);
+    animation: installPulse 2s ease-in-out infinite;
+}
+@keyframes installPulse {
+    0%, 100% { box-shadow: 0 4px 15px rgba(139,92,246,0.3); }
+    50% { box-shadow: 0 6px 25px rgba(139,92,246,0.6); }
 }
 .pwa-install-btn.show { display: inline-flex; }
-.pwa-install-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(139,92,246,0.4); }
+.pwa-install-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(139,92,246,0.5); }
+.pwa-install-btn:active { transform: scale(0.96); }
+
+/* Modal de instrucoes de instalacao PWA */
+.pwa-modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6);
+    z-index: 9998;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0;
+}
+.pwa-modal.show { display: flex; }
+.pwa-modal-content {
+    background: var(--zen-card);
+    border-radius: 24px 24px 0 0;
+    padding: 28px 24px 40px;
+    width: 100%;
+    max-width: 500px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    animation: slideUp 0.3s ease;
+}
+@keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+}
+.pwa-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.pwa-modal-header h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--zen-text);
+}
+.pwa-modal-close {
+    width: 32px; height: 32px;
+    border: none;
+    background: var(--zen-bg-warm);
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--zen-text-secondary);
+}
+.pwa-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--zen-bg-warm);
+    border-radius: 14px;
+    border: 1px solid var(--zen-border);
+}
+.pwa-step-num {
+    width: 28px; height: 28px;
+    background: var(--zen-primary);
+    color: white;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700;
+    flex-shrink: 0;
+}
+.pwa-step-text {
+    font-size: 14px;
+    color: var(--zen-text);
+    line-height: 1.5;
+}
+.pwa-step-text strong { color: var(--zen-primary-dark); }
+.pwa-download-btn {
+    padding: 14px;
+    background: linear-gradient(135deg, var(--zen-primary) 0%, var(--zen-primary-light) 100%);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(139,92,246,0.3);
+    transition: all 0.3s;
+}
+.pwa-download-btn:hover { transform: translateY(-2px); }
 
 /* Botão de login para modo offline */
 .login-prompt-btn {
@@ -2184,6 +2422,56 @@ input[type="time"] {
         <span class="toast-message" id="toastMessage"></span>
     </div>
 
+    <!-- MODAL DE INSTALAÇÃO PWA -->
+    <div class="pwa-modal" id="pwaModal">
+        <div class="pwa-modal-content">
+            <div class="pwa-modal-header">
+                <h3>&#128640; Instalar ZenTask Pro</h3>
+                <button class="pwa-modal-close" id="pwaModalClose">✕</button>
+            </div>
+            <div id="pwaStepsAndroid" style="display:none;">
+                <div class="pwa-step">
+                    <div class="pwa-step-num">1</div>
+                    <div class="pwa-step-text">Toque no botão <strong>"Instalar"</strong> que aparecerá automaticamente</div>
+                </div>
+                <div class="pwa-step">
+                    <div class="pwa-step-num">2</div>
+                    <div class="pwa-step-text">Confirme tocando em <strong>"Instalar"</strong> na caixa de diálogo</div>
+                </div>
+                <div class="pwa-step">
+                    <div class="pwa-step-num">3</div>
+                    <div class="pwa-step-text">O app aparecerá na sua tela inicial &#127968;</div>
+                </div>
+                <button class="pwa-download-btn" id="pwaAndroidInstallBtn">&#128640; Instalar Agora</button>
+            </div>
+            <div id="pwaStepsIOS" style="display:none;">
+                <div class="pwa-step">
+                    <div class="pwa-step-num">1</div>
+                    <div class="pwa-step-text">Toque no ícone <strong>&#11014;&#65039; Compartilhar</strong> na barra inferior do Safari</div>
+                </div>
+                <div class="pwa-step">
+                    <div class="pwa-step-num">2</div>
+                    <div class="pwa-step-text">Role para baixo e toque em <strong>"Adicionar à Tela de Início"</strong></div>
+                </div>
+                <div class="pwa-step">
+                    <div class="pwa-step-num">3</div>
+                    <div class="pwa-step-text">Toque em <strong>"Adicionar"</strong> no canto superior direito &#10003;</div>
+                </div>
+            </div>
+            <div id="pwaStepsDesktop" style="display:none;">
+                <div class="pwa-step">
+                    <div class="pwa-step-num">1</div>
+                    <div class="pwa-step-text">Clique no ícone de <strong>instalação &#11015;&#65039;</strong> na barra de endereços do Chrome</div>
+                </div>
+                <div class="pwa-step">
+                    <div class="pwa-step-num">2</div>
+                    <div class="pwa-step-text">Clique em <strong>"Instalar"</strong> na caixa de diálogo</div>
+                </div>
+                <button class="pwa-download-btn" id="pwaDesktopInstallBtn">&#128640; Instalar no Computador</button>
+            </div>
+        </div>
+    </div>
+
     <script>
     (function() {
         'use strict';
@@ -2346,6 +2634,11 @@ input[type="time"] {
         dataLimiteInput.value = today;
         setHoraLimiteValue('23:59');
 
+        // Variáveis de controle do Firebase (devem ser declaradas antes de inicializar)
+        var _fbListenersActive = false;
+        var _ignoreNextUpdate = false;
+        var _primeiraSync = true;
+
         // Inicializar aplicação
         inicializar();
         setupEventListeners();
@@ -2372,36 +2665,105 @@ input[type="time"] {
                 navigator.serviceWorker.register(swUrl).catch(function(){});
             }
 
-            // ── PWA: botão de instalação (Android + iOS) ──────────
+            // ── PWA: botão de instalação (Android + iOS + Desktop) ────────────
             var pwaBtn = document.getElementById('pwaInstallBtn');
+            var pwaModal = document.getElementById('pwaModal');
+            var pwaModalClose = document.getElementById('pwaModalClose');
             var deferredPrompt = null;
 
+            var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+            var isAndroid = /android/i.test(navigator.userAgent);
+            var isMobileDevice = isIOS || isAndroid;
+            var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+            // Mostra o botão em dispositivos móveis que não estão em modo standalone
+            if (isMobileDevice && !isStandalone) {
+                pwaBtn.classList.add('show');
+            }
+
+            // Captura o evento de instalação (Android/Chrome Desktop)
             window.addEventListener('beforeinstallprompt', function(e) {
                 e.preventDefault();
                 deferredPrompt = e;
                 pwaBtn.classList.add('show');
             });
 
-            var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-            var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-            if (isIOS && !isStandalone) {
-                pwaBtn.classList.add('show');
+            // Abre o modal ao clicar no botão
+            pwaBtn.addEventListener('click', function() {
+                // Mostra as instruções corretas por plataforma
+                document.getElementById('pwaStepsAndroid').style.display = 'none';
+                document.getElementById('pwaStepsIOS').style.display = 'none';
+                document.getElementById('pwaStepsDesktop').style.display = 'none';
+
+                if (isIOS) {
+                    document.getElementById('pwaStepsIOS').style.display = 'flex';
+                    document.getElementById('pwaStepsIOS').style.flexDirection = 'column';
+                    document.getElementById('pwaStepsIOS').style.gap = '10px';
+                } else if (deferredPrompt || isAndroid) {
+                    document.getElementById('pwaStepsAndroid').style.display = 'flex';
+                    document.getElementById('pwaStepsAndroid').style.flexDirection = 'column';
+                    document.getElementById('pwaStepsAndroid').style.gap = '10px';
+                } else {
+                    document.getElementById('pwaStepsDesktop').style.display = 'flex';
+                    document.getElementById('pwaStepsDesktop').style.flexDirection = 'column';
+                    document.getElementById('pwaStepsDesktop').style.gap = '10px';
+                }
+
+                pwaModal.classList.add('show');
+            });
+
+            // Fechar modal
+            pwaModalClose.addEventListener('click', function() {
+                pwaModal.classList.remove('show');
+            });
+            pwaModal.addEventListener('click', function(e) {
+                if (e.target === pwaModal) pwaModal.classList.remove('show');
+            });
+
+            // Botão de instalar Android (aciona o prompt nativo)
+            var pwaAndroidBtn = document.getElementById('pwaAndroidInstallBtn');
+            if (pwaAndroidBtn) {
+                pwaAndroidBtn.addEventListener('click', function() {
+                    if (deferredPrompt) {
+                        deferredPrompt.prompt();
+                        deferredPrompt.userChoice.then(function(choice) {
+                            if (choice.outcome === 'accepted') {
+                                pwaModal.classList.remove('show');
+                                pwaBtn.classList.remove('show');
+                                mostrarToast('App instalado com sucesso!', '🚀');
+                            }
+                            deferredPrompt = null;
+                        });
+                    } else {
+                        mostrarToast('Abra no Chrome para instalar!', '📱');
+                    }
+                });
             }
 
-            pwaBtn.addEventListener('click', function() {
-                if (deferredPrompt) {
-                    deferredPrompt.prompt();
-                    deferredPrompt.userChoice.then(function() {
-                        deferredPrompt = null;
-                        pwaBtn.classList.remove('show');
-                    });
-                } else if (isIOS && !isStandalone) {
-                    alert('Para instalar no iPhone/iPad:\n\n1. Toque no ícone ⬆️ (compartilhar) na barra do Safari\n2. Selecione "Adicionar à Tela de Início"\n3. Toque em "Adicionar"');
-                }
-            });
+            // Botão de instalar Desktop
+            var pwaDesktopBtn = document.getElementById('pwaDesktopInstallBtn');
+            if (pwaDesktopBtn) {
+                pwaDesktopBtn.addEventListener('click', function() {
+                    if (deferredPrompt) {
+                        deferredPrompt.prompt();
+                        deferredPrompt.userChoice.then(function(choice) {
+                            if (choice.outcome === 'accepted') {
+                                pwaModal.classList.remove('show');
+                                pwaBtn.classList.remove('show');
+                                mostrarToast('App instalado com sucesso!', '🚀');
+                            }
+                            deferredPrompt = null;
+                        });
+                    } else {
+                        mostrarToast('Use o Chrome para instalar!', '💻');
+                    }
+                });
+            }
 
             window.addEventListener('appinstalled', function() {
                 pwaBtn.classList.remove('show');
+                pwaModal.classList.remove('show');
+                mostrarToast('ZenTask instalado na tela inicial!', '🚀');
             });
 
             // ── Autenticação Firebase ──────────────────────────────
@@ -2418,22 +2780,36 @@ input[type="time"] {
                     return;
                 }
 
-                // Botão de login Google
-                document.getElementById('googleLoginBtn').addEventListener('click', function() {
-                    var isMobile = /android|iphone|ipad|ipod/i.test(navigator.userAgent);
+                var isMobile = /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent);
+
+                function doGoogleLogin() {
+                    var loginBtn = document.getElementById('googleLoginBtn');
+                    loginBtn.disabled = true;
+                    loginBtn.textContent = 'Entrando...';
+
                     if (isMobile) {
-                        // Mobile: usa redirect (mais confiável que popup no Android)
+                        // Mobile: usa redirect (mais confiável que popup)
                         fb.signInWithRedirect(fb.auth, fb.provider);
                     } else {
-                        fb.signInWithPopup(fb.auth, fb.provider).catch(function(e) {
-                            if (e.code === 'auth/unauthorized-domain') {
-                                alert('Adicione "' + location.hostname + '" nos domínios autorizados:\nFirebase → Authentication → Settings → Domínios autorizados');
-                            } else if (e.code !== 'auth/popup-closed-by-user') {
-                                alert('Erro: ' + e.message);
-                            }
-                        });
+                        fb.signInWithPopup(fb.auth, fb.provider)
+                          .then(function() {
+                              loginBtn.disabled = false;
+                          })
+                          .catch(function(e) {
+                              loginBtn.disabled = false;
+                              loginBtn.innerHTML = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width:22px;height:22px;flex-shrink:0"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>Entrar com Google';
+                              if (e.code === 'auth/unauthorized-domain') {
+                                  mostrarToast('Domínio não autorizado no Firebase!', '⚠️');
+                                  console.error('Adicione "' + location.hostname + '" nos domínios autorizados do Firebase');
+                              } else if (e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request') {
+                                  mostrarToast('Erro ao entrar: ' + e.message, '❌');
+                              }
+                          });
                     }
-                });
+                }
+
+                // Botão de login Google
+                document.getElementById('googleLoginBtn').addEventListener('click', doGoogleLogin);
 
                 // Botão continuar sem login
                 document.getElementById('skipLoginBtn').addEventListener('click', function() {
@@ -2443,30 +2819,30 @@ input[type="time"] {
                 });
 
                 // Botão entrar para sincronizar (modo offline)
-                document.getElementById('loginPromptBtn').addEventListener('click', function() {
-                    var isMobile = /android|iphone|ipad|ipod/i.test(navigator.userAgent);
-                    if (isMobile) {
-                        fb.signInWithRedirect(fb.auth, fb.provider);
-                    } else {
-                        fb.signInWithPopup(fb.auth, fb.provider).catch(function(e) {
-                            if (e.code !== 'auth/popup-closed-by-user') alert('Erro: ' + e.message);
-                        });
-                    }
-                });
+                document.getElementById('loginPromptBtn').addEventListener('click', doGoogleLogin);
 
                 // Botão de logout
                 document.getElementById('logoutBtn').addEventListener('click', function() {
-                    fb.signOut(fb.auth);
+                    fb.signOut(fb.auth).then(function() {
+                        _fbListenersActive = false;
+                        _primeiraSync = true;
+                        mostrarToast('Você saiu da conta!', '👋');
+                    });
                 });
 
                 // Processa resultado do redirect (mobile após login Google)
-                fb.getRedirectResult(fb.auth).then(function(result) {
-                    // resultado já tratado pelo onAuthStateChanged
-                }).catch(function(e) {
-                    if (e.code === 'auth/unauthorized-domain') {
-                        alert('Adicione "' + location.hostname + '" nos domínios autorizados:\nFirebase → Authentication → Settings → Domínios autorizados');
-                    }
-                });
+                fb.getRedirectResult(fb.auth)
+                  .then(function(result) {
+                      // resultado já tratado pelo onAuthStateChanged
+                  })
+                  .catch(function(e) {
+                      if (e.code === 'auth/unauthorized-domain') {
+                          mostrarToast('Domínio não autorizado no Firebase!', '⚠️');
+                          console.error('Adicione "' + location.hostname + '" nos domínios autorizados do Firebase');
+                      } else if (e.code && e.code !== 'auth/cancelled-popup-request') {
+                          console.warn('Redirect result error:', e.code);
+                      }
+                  });
 
                 // Estado de autenticação
                 fb.onAuthStateChanged(fb.auth, function(user) {
@@ -2480,12 +2856,14 @@ input[type="time"] {
                         loginScreen.classList.remove('show');
                         userInfo.classList.add('show');
                         userAvatar.src = user.photoURL || '';
-                        userNameEl.textContent = user.displayName ? user.displayName.split(' ')[0] : user.email;
+                        userAvatar.onerror = function() { this.style.display='none'; };
+                        userNameEl.textContent = user.displayName ? user.displayName.split(' ')[0] : user.email.split('@')[0];
                         document.getElementById('loginPromptBtn').classList.add('hidden');
                         setupFirebaseListeners(fb);
                     } else {
                         currentUser = null;
                         _fbListenersActive = false;
+                        _primeiraSync = true;
                         loginScreen.classList.add('show');
                         userInfo.classList.remove('show');
                         setSyncStatus('connecting', 'Faça login para sincronizar');
@@ -2495,13 +2873,35 @@ input[type="time"] {
             setTimeout(tryInitAuth, 400);
         }
 
-        // ── Listeners em tempo real do Firebase ───────────────────────
-        var _fbListenersActive = false;
-        var _ignoreNextUpdate = false; // evita loop de escrita→leitura
+        // ── Merge de tarefas offline com nuvem ────────────────────────────────
+        function mergeOfflineTasks(cloudTasks) {
+            // Pega tarefas locais que ainda não estão na nuvem (criadas offline)
+            var localTasks = JSON.parse(localStorage.getItem('tarefasZenUltimate') || '[]');
+            if (!localTasks.length) return cloudTasks;
 
-        function setupFirebaseListeners(fb) {
+            var cloudIds = new Set(cloudTasks.map(function(t) { return String(t.id); }));
+            var novasTarefasOffline = localTasks.filter(function(t) {
+                return !cloudIds.has(String(t.id));
+            });
+
+            if (novasTarefasOffline.length > 0) {
+                // Há tarefas criadas offline — faz merge
+                var merged = novasTarefasOffline.concat(cloudTasks);
+                // Persiste o merge de volta na nuvem
+                try {
+                    fb.set(fb.ref(fb.db, userPath('tarefas')), merged)
+                      .catch(function(e){ console.warn('Merge write error:', e); });
+                } catch(e) { console.warn('Merge error:', e); }
+                mostrarToast(novasTarefasOffline.length + ' tarefa(s) offline sincronizada(s)!', '☁️');
+                return merged;
+            }
+            return cloudTasks;
+        }
+
+        function setupFirebaseListeners(fbRef) {
             if (_fbListenersActive) return;
             _fbListenersActive = true;
+            var fb = fbRef;
 
             setSyncStatus('connecting', 'Sincronizando...');
 
@@ -2517,10 +2917,26 @@ input[type="time"] {
                 if (_ignoreNextUpdate) { _ignoreNextUpdate = false; return; }
                 var data = snap.val();
                 if (data !== null) {
-                    tarefas = Array.isArray(data) ? data : Object.values(data);
+                    var cloudTasks = Array.isArray(data) ? data : Object.values(data);
+                    // Na primeira sync, faz merge com dados offline
+                    if (_primeiraSync) {
+                        _primeiraSync = false;
+                        cloudTasks = mergeOfflineTasks(cloudTasks);
+                    }
+                    tarefas = cloudTasks;
                     localStorage.setItem('tarefasZenUltimate', JSON.stringify(tarefas));
                     renderizar();
                     atualizarStreak();
+                } else if (_primeiraSync) {
+                    // Nuvem vazia na primeira sync: sobe dados locais
+                    _primeiraSync = false;
+                    if (tarefas.length > 0) {
+                        try {
+                            fb.set(fb.ref(fb.db, userPath('tarefas')), tarefas)
+                              .catch(function(e){ console.warn('Upload offline tasks error:', e); });
+                            mostrarToast(tarefas.length + ' tarefa(s) offline enviada(s) para a nuvem!', '☁️');
+                        } catch(e) { console.warn('Upload error:', e); }
+                    }
                 }
             });
 
@@ -2533,6 +2949,15 @@ input[type="time"] {
                     renderizarCategorias();
                     renderizarCategoriasLista();
                     renderizarCategoryFilters();
+                } else {
+                    // Sobe categorias locais se nuvem estiver vazia
+                    var localCats = JSON.parse(localStorage.getItem('categoriasZenUltimate') || 'null');
+                    if (localCats && localCats.length > 0) {
+                        try {
+                            fb.set(fb.ref(fb.db, userPath('categorias')), localCats)
+                              .catch(function(e){ console.warn('Upload cats error:', e); });
+                        } catch(e) {}
+                    }
                 }
             });
 
@@ -3347,34 +3772,92 @@ input[type="time"] {
                 hour:'2-digit', minute:'2-digit'
             });
 
+            var categoriaObj = categorias.find(function(c) { return c.id === tarefa.categoria; });
+            var categoriaNome = categoriaObj ? categoriaObj.nome : tarefa.categoria;
+            var prioridadeTexto = tarefa.prioridade === 'vermelha' ? 'Alta' : tarefa.prioridade === 'amarela' ? 'Média' : 'Baixa';
+
             // Toast no app
             mostrarToast(msg + ' ' + tarefa.texto.substring(0, 25) + (tarefa.texto.length > 25 ? '...' : ''), '⏰');
 
             // Notificação nativa do browser
             if ('Notification' in window && Notification.permission === 'granted') {
-                new Notification('ZenTask Pro — ' + msg, {
-                    body: tarefa.texto + '\nPrazo: ' + prazoFormatado,
-                    icon: 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'12\' fill=\'%238b5cf6\'/%3E%3C/svg%3E'
-                });
+                try {
+                    new Notification('ZenTask Pro — ' + msg, {
+                        body: tarefa.texto + '\nPrazo: ' + prazoFormatado,
+                        icon: 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'12\' fill=\'%238b5cf6\'/%3E%3C/svg%3E',
+                        badge: 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'12\' fill=\'%238b5cf6\'/%3E%3C/svg%3E',
+                        tag: 'zentask-' + tarefa.id + '-' + tipo,
+                        renotify: true
+                    });
+                } catch(e) { console.warn('Notification error:', e); }
             }
 
-            // Email via mailto (abre cliente de email do usuário)
+            // Email via EmailJS (envia e-mail real sem servidor)
             if (currentUser && currentUser.email) {
                 var assunto = '[ZenTask] ' + msg + ' — ' + tarefa.texto;
-                var corpo = 'Olá!\n\n' + msg + '\n\n'
-                    + 'Tarefa: ' + tarefa.texto + '\n'
-                    + 'Prazo: ' + prazoFormatado + '\n'
-                    + 'Categoria: ' + tarefa.categoria + '\n'
-                    + 'Prioridade: ' + (tarefa.prioridade === 'vermelha' ? 'Alta' : tarefa.prioridade === 'amarela' ? 'Média' : 'Baixa') + '\n\n'
-                    + 'Acesse o ZenTask Pro para concluir essa tarefa!';
-                var a = document.createElement('a');
-                a.href = 'mailto:' + currentUser.email
-                    + '?subject=' + encodeURIComponent(assunto)
-                    + '&body='    + encodeURIComponent(corpo);
-                a.style.display = 'none';
-                document.body.appendChild(a);
-                setTimeout(function() { a.click(); document.body.removeChild(a); }, 800);
+                var corpoHtml = '<div style="font-family:sans-serif;max-width:500px;margin:0 auto;padding:20px;">'
+                    + '<div style="background:linear-gradient(135deg,#8b5cf6,#a78bfa);border-radius:16px;padding:20px;text-align:center;margin-bottom:20px;">'
+                    + '<h1 style="color:white;margin:0;font-size:22px;">ZenTask Pro</h1>'
+                    + '<p style="color:rgba(255,255,255,0.9);margin:6px 0 0;font-size:14px;">Lembrete de Prazo</p>'
+                    + '</div>'
+                    + '<div style="background:#fff3cd;border-left:4px solid #fbbf24;border-radius:8px;padding:16px;margin-bottom:16px;">'
+                    + '<p style="margin:0;font-size:16px;font-weight:700;color:#92400e;">' + msg + '</p>'
+                    + '</div>'
+                    + '<div style="background:#f5f3ef;border-radius:12px;padding:16px;margin-bottom:16px;">'
+                    + '<p style="margin:0 0 8px;font-size:15px;font-weight:600;color:#1f1f23;">&#128221; ' + tarefa.texto + '</p>'
+                    + '<p style="margin:4px 0;font-size:13px;color:#6b7280;">&#128197; Prazo: <strong>' + prazoFormatado + '</strong></p>'
+                    + '<p style="margin:4px 0;font-size:13px;color:#6b7280;">&#128193; Categoria: <strong>' + categoriaNome + '</strong></p>'
+                    + '<p style="margin:4px 0;font-size:13px;color:#6b7280;">&#128681; Prioridade: <strong>' + prioridadeTexto + '</strong></p>'
+                    + '</div>'
+                    + '<p style="font-size:12px;color:#9ca3af;text-align:center;margin-top:20px;">&copy; 2026 ZenTask Pro &mdash; Guilherme Gonçalves</p>'
+                    + '</div>';
+
+                // Tenta enviar via EmailJS
+                if (window.EMAILJS_CONFIGURED && typeof emailjs !== 'undefined') {
+                    emailjs.send(
+                        window.EMAILJS_SERVICE_ID,
+                        window.EMAILJS_TEMPLATE_ID,
+                        {
+                            to_email: currentUser.email,
+                            to_name: currentUser.displayName || currentUser.email.split('@')[0],
+                            subject: assunto,
+                            message: corpoHtml,
+                            task_name: tarefa.texto,
+                            task_deadline: prazoFormatado,
+                            task_category: categoriaNome,
+                            task_priority: prioridadeTexto,
+                            reminder_type: msg
+                        }
+                    ).then(function() {
+                        console.log('Email enviado via EmailJS para ' + currentUser.email);
+                        mostrarToast('E-mail de lembrete enviado!', '✉️');
+                    }).catch(function(err) {
+                        console.warn('EmailJS error:', err);
+                        // Fallback: abre cliente de email local
+                        _enviarEmailFallback(currentUser.email, assunto, tarefa, prazoFormatado, categoriaNome, prioridadeTexto, msg);
+                    });
+                } else {
+                    // EmailJS não configurado: usa fallback mailto
+                    _enviarEmailFallback(currentUser.email, assunto, tarefa, prazoFormatado, categoriaNome, prioridadeTexto, msg);
+                }
             }
+        }
+
+        function _enviarEmailFallback(email, assunto, tarefa, prazoFormatado, categoriaNome, prioridadeTexto, msg) {
+            var corpo = 'Olá!\n\n' + msg + '\n\n'
+                + 'Tarefa: ' + tarefa.texto + '\n'
+                + 'Prazo: ' + prazoFormatado + '\n'
+                + 'Categoria: ' + categoriaNome + '\n'
+                + 'Prioridade: ' + prioridadeTexto + '\n\n'
+                + 'Acesse o ZenTask Pro para concluir essa tarefa!';
+            var a = document.createElement('a');
+            a.href = 'mailto:' + email
+                + '?subject=' + encodeURIComponent(assunto)
+                + '&body='    + encodeURIComponent(corpo);
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(function() { document.body.removeChild(a); }, 1000);
         }
 
         // Pede permissão de notificação na primeira interação
