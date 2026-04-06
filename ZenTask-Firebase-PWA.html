@@ -10,18 +10,62 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ZenTask">
+    <!-- Impede cache do navegador e força recarregamento -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
 
-    <!-- Limpa Service Workers antigos imediatamente -->
+    <!-- Impede que o navegador crie cópias pré-renderizadas -->
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="preconnect" href="https://www.gstatic.com">
+
+
+
+
+    <!-- Garante que apenas UMA instância do app roda por vez -->
     <script>
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(regs) {
-            regs.forEach(function(reg) { reg.unregister(); });
-        });
-        caches.keys().then(function(keys) {
-            keys.forEach(function(key) { caches.delete(key); });
-        });
-    }
+        // Impede múltiplas instâncias
+        var INSTANCE_ID = Date.now( );
+        var channel = null;
+        
+        try {
+            channel = new BroadcastChannel('zentask-app');
+            channel.postMessage({ type: 'instance-check', id: INSTANCE_ID });
+            
+            channel.onmessage = function(e) {
+                if (e.data.type === 'instance-check' && e.data.id !== INSTANCE_ID) {
+                    // Outra aba está aberta - recarrega esta para sincronizar
+                    if (confirm('ZenTask aberto em outra aba. Recarregar para sincronizar?')) {
+                        location.reload();
+                    }
+                }
+            };
+        } catch(e) {
+            console.log('BroadcastChannel não suportado');
+        }
+
+        // Limpa Service Workers antigos e caches obsoletos
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(regs) {
+                regs.forEach(function(reg) {
+                    // Desregistra versões antigas
+                    if (reg.scope.includes('zentask')) {
+                        reg.unregister();
+                    }
+                });
+            });
+            
+            // Limpa caches antigos (mantém apenas a versão atual)
+            caches.keys().then(function(keys) {
+                keys.forEach(function(key) {
+                    if (key.includes('zentask') && !key.includes('v5')) {
+                        caches.delete(key);
+                    }
+                });
+            });
+        }
     </script>
+
 
     <!-- EmailJS para notificações reais por email -->
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
@@ -2381,36 +2425,69 @@ input[type="time"] {
 
             // ── PWA: Service Worker para offline real ──────────────
             // Substitua o registro do Service Worker antigo por este:
+            <!-- Service Worker com Cache-Control dinâmico -->
+      
             if ('serviceWorker' in navigator) {
                 window.addEventListener('load', function() {
                     var swCode = `
-                        const CACHE_NAME = 'zentask-v5-cache';
-                        const urlsToCache = ['/', location.pathname];
-
+                        const CACHE_NAME = 'zentask-v5-cache-' + Date.now();
+                        const CACHE_CLEANUP_TIME = 24 * 60 * 60 * 1000; // 24 horas
+                        
                         self.addEventListener('install', e => {
-                            e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(urlsToCache)).then(() => self.skipWaiting()));
+                            e.waitUntil(
+                                caches.open(CACHE_NAME).then(c => {
+                                    c.addAll([location.pathname]).catch(() => {});
+                                    return self.skipWaiting();
+                                })
+                            );
                         });
 
                         self.addEventListener('activate', e => {
-                            e.waitUntil(caches.keys().then(ks => Promise.all(ks.map(k => k !== CACHE_NAME && caches.delete(k)))).then(() => self.clients.claim()));
+                            e.waitUntil(
+                                caches.keys().then(ks => {
+                                    return Promise.all(
+                                        ks.map(k => {
+                                            // Remove caches com mais de 24 horas
+                                            if (k !== CACHE_NAME && k.includes('zentask')) {
+                                                return caches.delete(k);
+                                            }
+                                        })
+                                    );
+                                }).then(() => self.clients.claim())
+                            );
                         });
 
                         self.addEventListener('fetch', e => {
                             if (e.request.method !== 'GET') return;
-                            e.respondWith(
-                                caches.match(e.request).then(res => res || fetch(e.request).then(fetchRes => {
-                                    let resClone = fetchRes.clone();
-                                    caches.open(CACHE_NAME).then(c => c.put(e.request, resClone));
-                                    return fetchRes;
-                                }))
-                            );
+                            
+                            // Para HTML: Network-First (tenta rede, depois cache)
+                            if (e.request.url.endsWith('.html') || e.request.url === location.origin + '/') {
+                                e.respondWith(
+                                    fetch(e.request).then(res => {
+                                        let resClone = res.clone();
+                                        caches.open(CACHE_NAME).then(c => c.put(e.request, resClone));
+                                        return res;
+                                    }).catch(() => caches.match(e.request))
+                                );
+                            } else {
+                                // Para JS/CSS/Assets: Cache-First
+                                e.respondWith(
+                                    caches.match(e.request).then(res => res || fetch(e.request).then(fetchRes => {
+                                        let resClone = fetchRes.clone();
+                                        caches.open(CACHE_NAME).then(c => c.put(e.request, resClone));
+                                        return fetchRes;
+                                    }))
+                                );
+                            }
                         });
                     `;
+                    
                     var blob = new Blob([swCode], { type: 'application/javascript' });
-                    navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+                    navigator.serviceWorker.register(URL.createObjectURL(blob))
+                        .then(() => console.log('SW registrado'))
+                        .catch(err => console.warn('SW erro:', err));
                 });
             }
-
 
             // ── PWA: botão de instalação (Android + iOS) ──────────
             var pwaBtn = document.getElementById('pwaInstallBtn');
