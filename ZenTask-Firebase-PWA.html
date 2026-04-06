@@ -23,48 +23,48 @@
 
 
     <!-- Garante que apenas UMA instância do app roda por vez -->
-    <script>
-        // Impede múltiplas instâncias
-        var INSTANCE_ID = Date.now( );
-        var channel = null;
+<script>
+    // Impede múltiplas instâncias
+    var INSTANCE_ID = Date.now( );
+    var channel = null;
+    
+    try {
+        channel = new BroadcastChannel('zentask-app');
+        channel.postMessage({ type: 'instance-check', id: INSTANCE_ID });
         
-        try {
-            channel = new BroadcastChannel('zentask-app');
-            channel.postMessage({ type: 'instance-check', id: INSTANCE_ID });
-            
-            channel.onmessage = function(e) {
-                if (e.data.type === 'instance-check' && e.data.id !== INSTANCE_ID) {
-                    // Outra aba está aberta - recarrega esta para sincronizar
-                    if (confirm('ZenTask aberto em outra aba. Recarregar para sincronizar?')) {
-                        location.reload();
-                    }
+        channel.onmessage = function(e) {
+            if (e.data.type === 'instance-check' && e.data.id !== INSTANCE_ID) {
+                // Outra aba está aberta - recarrega esta para sincronizar
+                if (confirm('ZenTask aberto em outra aba. Recarregar para sincronizar?')) {
+                    location.reload();
                 }
-            };
-        } catch(e) {
-            console.log('BroadcastChannel não suportado');
-        }
+            }
+        };
+    } catch(e) {
+        console.log('BroadcastChannel não suportado');
+    }
 
-        // Limpa Service Workers antigos e caches obsoletos
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function(regs) {
-                regs.forEach(function(reg) {
-                    // Desregistra versões antigas
-                    if (reg.scope.includes('zentask')) {
-                        reg.unregister();
-                    }
-                });
+    // Limpa Service Workers antigos e caches obsoletos
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(regs) {
+            regs.forEach(function(reg) {
+                // Desregistra versões antigas
+                if (reg.scope.includes('zentask')) {
+                    reg.unregister();
+                }
             });
-            
-            // Limpa caches antigos (mantém apenas a versão atual)
-            caches.keys().then(function(keys) {
-                keys.forEach(function(key) {
-                    if (key.includes('zentask') && !key.includes('v5')) {
-                        caches.delete(key);
-                    }
-                });
+        });
+        
+        // Limpa caches antigos (mantém apenas a versão atual)
+        caches.keys().then(function(keys) {
+            keys.forEach(function(key) {
+                if (key.includes('zentask') && !key.includes('v5')) {
+                    caches.delete(key);
+                }
             });
-        }
-    </script>
+        });
+    }
+</script>
 
 
     <!-- EmailJS para notificações reais por email -->

@@ -2485,35 +2485,35 @@ input[type="time"] {
             // Função para mostrar instruções personalizadas
             function mostrarInstrucoesInstalacao() {
                 if (isIOS && !isStandalone) {
-                    alert('📱 INSTALAR ZENTASK NO iPhone/iPad:
+                    alert(`📱 INSTALAR ZENTASK NO iPhone/iPad:
 
 1️⃣ Toque no ícone ⬆️ (Compartilhar) na barra do Safari
 2️⃣ Role para baixo e selecione "Adicionar à Tela de Início"
 3️⃣ Toque em "Adicionar" no canto superior direito
 
-O app funcionará completamente offline!');
+O app funcionará completamente offline!`);
                 } else if (isAndroid && isChrome) {
-                    alert('🤖 INSTALAR ZENTASK NO ANDROID:
+                    alert(`🤖 INSTALAR ZENTASK NO ANDROID:
 
 1️⃣ Toque nos 3 pontos ⋮ no canto superior do Chrome
 2️⃣ Selecione "Instalar app" ou "Adicionar à tela inicial"
 3️⃣ Confirme tocando em "Instalar"
 
-O app funcionará completamente offline!');
+O app funcionará completamente offline!`);
                 } else if (isAndroid && isFirefox) {
-                    alert('🦊 INSTALAR ZENTASK NO ANDROID (Firefox):
+                    alert(`🦊 INSTALAR ZENTASK NO ANDROID (Firefox):
 
 1️⃣ Toque nos 3 pontos ⋮ no canto superior
 2️⃣ Selecione "Instalar"
 3️⃣ Confirme
 
-O app funcionará completamente offline!');
+O app funcionará completamente offline!`);
                 } else {
-                    alert('💻 INSTALAR ZENTASK:
+                    alert(`💻 INSTALAR ZENTASK:
 
 Seu navegador suporta instalação de apps!
 
-Toque no botão "Instalar" que aparecerá na tela.');
+Toque no botão "Instalar" que aparecerá na tela.`);
                 }
             }
 
