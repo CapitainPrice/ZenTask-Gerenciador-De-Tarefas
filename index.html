@@ -132,19 +132,6 @@
                 <button class="logout-btn" id="logoutBtn">Sair</button>
             </div>
 
-            <!-- Botão de Instalação PWA Melhorado -->
-            <div class="pwa-install-section" id="pwaInstallSection">
-                <button class="pwa-install-btn" id="pwaInstallBtn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
-                    </svg>
-                    <span id="pwaInstallText">Instalar App</span>
-                </button>
-                <div class="pwa-install-info" id="pwaInstallInfo">
-                    <small>Funciona offline e sincroniza automaticamente</small>
-                </div>
-            </div>
-
             <!-- Botão Gerenciar Categorias -->
             <button class="manage-categories-btn" id="manageCategoriesBtn">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
@@ -390,7 +377,7 @@
                     </label>
                 </div>
             </div>
-            <button class="edit-save-btn" id="editSaveBtn">Salvar Alteracoes</button>
+            <button class="edit-save-btn" id="editSaveBtn">Salvar Alterações</button>
         </div>
     </div>
 
@@ -903,8 +890,8 @@ body {
         var firebaseConfigured = true;
         var currentUser = null;
         var _fbListenersActive = false;
-        var _ignoreNextUpdate = false;
         var _syncVersion = 0; // Controle de versão para sincronização
+        var _savingToFirebase = false; // Evita loop de escrita→leitura→escrita
 
         // Push Notification
         var pushSubscription = null;
@@ -986,9 +973,6 @@ body {
 
             // Service Worker
             registerServiceWorker();
-
-            // PWA Install
-            setupPWAInstall();
 
             // Firebase Auth
             setupFirebaseAuth();
@@ -1278,16 +1262,14 @@ body {
 
             // Tarefas com controle de versão
             _fb.onValue(_fb.ref(_fb.db, userPath('tarefas')), function(snap) {
-                if (_ignoreNextUpdate) {
-                    _ignoreNextUpdate = false;
-                    return;
-                }
+                // Se estamos no meio de um save local, ignoramos APENAS esta notificação imediata
+                if (_savingToFirebase) return;
 
                 var data = snap.val();
                 var remoteVersion = data ? (data._syncVersion || 0) : 0;
 
-                if (data && remoteVersion > _syncVersion) {
-                    // Dados do Firebase são mais recentes
+                if (data && remoteVersion >= _syncVersion) {
+                    // Firebase tem dados iguais ou mais recentes - sempre aceitar
                     var remoteTarefas = data.tarefas || [];
                     tarefas = remoteTarefas.filter(function(t) { return !t._deleted; });
                     _syncVersion = remoteVersion;
@@ -1303,7 +1285,7 @@ body {
 
             // Categorias
             _fb.onValue(_fb.ref(_fb.db, userPath('categorias')), function(snap) {
-                if (_ignoreNextUpdate) return;
+                if (_savingToFirebase) return;
                 var data = snap.val();
                 if (data && Array.isArray(data)) {
                     categorias = data;
@@ -1316,7 +1298,7 @@ body {
 
             // Streak
             _fb.onValue(_fb.ref(_fb.db, userPath('streak')), function(snap) {
-                if (_ignoreNextUpdate) return;
+                if (_savingToFirebase) return;
                 var data = snap.val();
                 if (data) {
                     streak = data;
@@ -1332,15 +1314,19 @@ body {
 
         function sincronizarParaFirebase() {
             if (!_fb || !currentUser) return;
-            _ignoreNextUpdate = true;
             _syncVersion++;
+            _savingToFirebase = true;
             _fb.set(_fb.ref(_fb.db, userPath('tarefas')), {
                 tarefas: tarefas,
                 _syncVersion: _syncVersion,
                 _lastSync: Date.now()
+            }).then(function() {
+                // Liberar o bloqueio após um curto delay (tempo do onValue confirmar)
+                setTimeout(function() { _savingToFirebase = false; }, 500);
             }).catch(function(e) {
                 console.warn('Sync error:', e);
-                _ignoreNextUpdate = false;
+                _savingToFirebase = false;
+                _syncVersion--;
             });
         }
 
