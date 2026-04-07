@@ -1,0 +1,44 @@
+{
+  "name": "ZenTask Pro - Organizador de Tarefas",
+  "short_name": "ZenTask",
+  "description": "Organize suas tarefas com serenidade. Sincronize em todos os dispositivos.",
+  "start_url": "/ZenTask-Firebase-PWA.html",
+  "display": "standalone",
+  "background_color": "#faf9f7",
+  "theme_color": "#8b5cf6",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%238b5cf6'/%3E%3Cpath d='M56 96l24 24 56-56m48 24a36 36 0 11-72 0 36 36 0 0172 0z' fill='none' stroke='%23fff' stroke-width='12' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%238b5cf6'/%3E%3Cpath d='M140 256l64 64 144-144m128 64a96 96 0 11-192 0 96 96 0 01192 0z' fill='none' stroke='%23fff' stroke-width='28' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Adicionar Tarefa",
+      "short_name": "Adicionar",
+      "description": "Adicionar uma nova tarefa",
+      "url": "/ZenTask-Firebase-PWA.html?action=add",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='20' fill='%2310b981'/%3E%3Cpath d='M48 28v40M28 48h40' stroke='%23fff' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}

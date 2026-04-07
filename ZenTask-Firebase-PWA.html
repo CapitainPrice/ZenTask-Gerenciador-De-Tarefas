@@ -2,100 +2,29 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ZenTask Pro - Organizador de Tarefas com Streak</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='12' fill='%238b5cf6'/%3E%3Cpath d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' fill='none' stroke='%23fff' stroke-width='2'/%3E%3C/svg%3E">
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#8b5cf6">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ZenTask">
+    <meta name="description" content="Organize suas tarefas com serenidade. Sincronize em todos os dispositivos.">
+
     <!-- Impede cache do navegador e força recarregamento -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-
-    <!-- Impede que o navegador crie cópias pré-renderizadas -->
     <meta name="robots" content="noindex, nofollow">
     <link rel="preconnect" href="https://www.gstatic.com">
-
-
-
-
-    <!-- Garante que apenas UMA instância do app roda por vez -->
-<script>
-    // Impede múltiplas instâncias
-    var INSTANCE_ID = Date.now( );
-    var channel = null;
-    
-    try {
-        channel = new BroadcastChannel('zentask-app');
-        channel.postMessage({ type: 'instance-check', id: INSTANCE_ID });
-        
-        channel.onmessage = function(e) {
-            if (e.data.type === 'instance-check' && e.data.id !== INSTANCE_ID) {
-                // Outra aba está aberta - recarrega esta para sincronizar
-                if (confirm('ZenTask aberto em outra aba. Recarregar para sincronizar?')) {
-                    location.reload();
-                }
-            }
-        };
-    } catch(e) {
-        console.log('BroadcastChannel não suportado');
-    }
-
-    // Limpa Service Workers antigos e caches obsoletos
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(regs) {
-            regs.forEach(function(reg) {
-                // Desregistra versões antigas
-                if (reg.scope.includes('zentask')) {
-                    reg.unregister();
-                }
-            });
-        });
-        
-        // Limpa caches antigos (mantém apenas a versão atual)
-        caches.keys().then(function(keys) {
-            keys.forEach(function(key) {
-                if (key.includes('zentask') && !key.includes('v5')) {
-                    caches.delete(key);
-                }
-            });
-        });
-    }
-</script>
-
-
-    <!-- EmailJS para notificações reais por email -->
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-    <script>
-    // ══════════════════════════════════════════════════════════
-    //  EMAILJS CONFIG — Crie conta GRATUITA em emailjs.com
-    //  e substitua os 3 valores abaixo:
-    //  1. Acesse emailjs.com → Account → API Keys → Public Key
-    //  2. Email Services → Add New Service → Gmail → copie Service ID
-    //  3. Email Templates → Create Template (use variáveis abaixo)
-    //     → copie Template ID
-    //
-    //  Variáveis no template EmailJS:
-    //  {{to_email}}  {{to_name}}  {{task_name}}
-    //  {{deadline}}  {{category}} {{priority}} {{alert_type}}
-    // ══════════════════════════════════════════════════════════
-    window.EMAILJS_PUBLIC_KEY  = 'SUA_PUBLIC_KEY';   // ex: 'user_abc123'
-    window.EMAILJS_SERVICE_ID  = 'SUA_SERVICE_ID';   // ex: 'service_gmail'
-    window.EMAILJS_TEMPLATE_ID = 'SUA_TEMPLATE_ID';  // ex: 'template_prazo'
-    </script>
 
     <!-- Firebase SDK -->
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-      import { getDatabase, ref, set, onValue, remove, update } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+      import { getDatabase, ref, set, onValue, remove, update, onDisconnect, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
       import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
-      // ============================================================
-      //  🔥 CREDENCIAIS DO FIREBASE
-      // ============================================================
       const firebaseConfig = {
         apiKey: "AIzaSyAVSnWAGwNdfzM92hFSHHE1ZYx9Qa-1bdE",
         authDomain: "zentask-firebase.firebaseapp.com",
@@ -105,1768 +34,22 @@
         messagingSenderId: "912525998628",
         appId: "1:912525998628:web:a9be0680d953f4f2c776b1",
         measurementId: "G-4Z7JCJB6Q8"
-        };
+      };
 
       const app      = initializeApp(firebaseConfig);
       const db       = getDatabase(app);
       const auth     = getAuth(app);
       const provider = new GoogleAuthProvider();
 
-      window._firebase = { db, ref, set, onValue, remove, update, auth, provider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged };
+      window._firebase = { db, ref, set, onValue, remove, update, auth, provider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged, onDisconnect, serverTimestamp };
     </script>
 
-
-<!-- ==========================================
-   ZenTask Lista de Tarefas - Versão 1.0
-   Desenvolvido por: Guilherme Gonçalves
-   Ano: 2026
-   Todos os direitos reservados
-   ========================================== -->
-
-<style>
-
-/* Variáveis CSS - Paleta de Cores */
-:root {
-    --zen-green: #10b981;
-    --zen-green-light: #34d399;
-    --zen-green-dark: #059669;
-
-    --zen-yellow: #fbbf24;
-    --zen-yellow-light: #fcd34d;
-    --zen-yellow-dark: #d97706;
-
-    --zen-red: #f87171;
-    --zen-red-light: #fca5a5;
-    --zen-red-dark: #dc2626;
-
-    --zen-primary: #8b5cf6;
-    --zen-primary-light: #a78bfa;
-    --zen-primary-dark: #7c3aed;
-
-    --zen-bg: #faf9f7;
-    --zen-bg-warm: #f5f3ef;
-    --zen-card: #ffffff;
-    --zen-card-shadow: rgba(139, 92, 246, 0.08);
-    --zen-text: #1f1f23;
-    --zen-text-secondary: #6b7280;
-    --zen-border: #e5e5e5;
-    --zen-accent: rgba(139, 92, 246, 0.1);
-
-    --cat-casa: #ec4899;
-    --cat-trabalho: #3b82f6;
-    --cat-pessoal: #8b5cf6;
-    --cat-estudos: #f59e0b;
-}
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent;
-}
-
-html {
-    scroll-behavior: smooth;
-}
-
-body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-    background: var(--zen-bg);
-    color: var(--zen-text);
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    padding: 20px 12px;
-    background-image:
-        radial-gradient(circle at 10% 20%, rgba(16, 185, 129, 0.05) 0%, transparent 40%),
-        radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.05) 0%, transparent 40%);
-}
-
-.app-container {
-    width: 100%;
-    max-width: 700px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-/* ==========================================
-   CABECALHO COM STREAK DIÁRIO 
-   ========================================== */
-.app-header {
-    background: var(--zen-card);
-    border-radius: 24px;
-    padding: 28px 24px;
-    box-shadow: 0 8px 40px var(--zen-card-shadow);
-    position: relative;
-    overflow: visible;
-    text-align: center;
-}
-
-.header-top {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 14px;
-    margin-bottom: 12px;
-}
-
-.zen-icon {
-    width: 56px;
-    height: 56px;
-    background: linear-gradient(135deg, var(--zen-primary) 0%, var(--zen-primary-light) 100%);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    color: white;
-    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
-    animation: zenPulse 4s ease-in-out infinite;
-}
-
-@keyframes zenPulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-}
-
-.header-title h1 {
-    font-size: 26px;
-    font-weight: 700;
-    margin-bottom: 4px;
-}
-
-.header-title h1 span {
-    background: linear-gradient(135deg, var(--zen-primary) 0%, var(--zen-primary-light) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.header-title p {
-    color: var(--zen-text-secondary);
-    font-size: 13px;
-}
-
-/* ==========================================
-   SISTEMA DE STREAK DIÁRIO
-   ========================================== */
-.streak-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 20px;
-    margin-top: 16px;
-    padding: 16px;
-    background: linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(234, 88, 12, 0.05) 100%);
-    border-radius: 16px;
-    border: 2px solid rgba(249, 115, 22, 0.2);
-}
-
-.streak-fire {
-    position: relative;
-    width: 60px;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.streak-fire-icon {
-    font-size: 40px;
-    filter: drop-shadow(0 0 10px rgba(249, 115, 22, 0.5));
-    animation: fireGlow 1.5s ease-in-out infinite;
-}
-
-@keyframes fireGlow {
-    0%, 100% {
-        transform: scale(1);
-        filter: drop-shadow(0 0 10px rgba(249, 115, 22, 0.5));
-    }
-    50% {
-        transform: scale(1.1);
-        filter: drop-shadow(0 0 20px rgba(249, 115, 22, 0.8));
-    }
-}
-
-/* Fogo nivel 100 dias - Extra grande */
-.streak-fire.level-100 .streak-fire-icon {
-    font-size: 60px;
-    animation: fireGlowIntense 0.8s ease-in-out infinite;
-}
-
-@keyframes fireGlowIntense {
-    0%, 100% {
-        transform: scale(1) rotate(-5deg);
-        filter: drop-shadow(0 0 15px rgba(249, 115, 22, 0.8)) drop-shadow(0 0 30px rgba(234, 88, 12, 0.6));
-    }
-    50% {
-        transform: scale(1.15) rotate(5deg);
-        filter: drop-shadow(0 0 25px rgba(249, 115, 22, 1)) drop-shadow(0 0 50px rgba(234, 88, 12, 0.8));
-    }
-}
-
-.streak-info {
-    text-align: left;
-}
-
-.streak-count {
-    font-size: 36px;
-    font-weight: 800;
-    color: #ea580c;
-    line-height: 1;
-}
-
-.streak-count span {
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--zen-text-secondary);
-}
-
-.streak-label {
-    font-size: 12px;
-    color: var(--zen-text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.streak-status {
-    font-size: 11px;
-    color: #ea580c;
-    font-weight: 600;
-    margin-top: 2px;
-}
-
-/* Partículas de fogo para 100 dias */
-.streak-particles {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    display: none;
-}
-
-.streak-particles.show {
-    display: block;
-}
-
-.particle {
-    position: absolute;
-    width: 6px;
-    height: 6px;
-    background: #fb923c;
-    border-radius: 50%;
-    animation: particleFloat 2s ease-out infinite;
-}
-
-.particle:nth-child(1) { left: 10%; animation-delay: 0s; }
-.particle:nth-child(2) { left: 30%; animation-delay: 0.3s; }
-.particle:nth-child(3) { left: 50%; animation-delay: 0.6s; }
-.particle:nth-child(4) { left: 70%; animation-delay: 0.9s; }
-.particle:nth-child(5) { left: 90%; animation-delay: 1.2s; }
-
-@keyframes particleFloat {
-    0% {
-        bottom: 20%;
-        opacity: 1;
-        transform: scale(1);
-    }
-    100% {
-        bottom: 100%;
-        opacity: 0;
-        transform: scale(0);
-    }
-}
-
-/* Cartão de Gerenciar Categorias */
-.manage-categories-btn {
-    display: flex;
-    align-items: center;    
-    justify-content: center;
-    gap: 8px;
-    margin-top: 12px;
-    padding: 8px 16px;
-    background: var(--zen-accent);
-    border: 1px solid var(--zen-border);
-    border-radius: 20px;
-    color: var(--zen-text-secondary);
-    font-size: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.manage-categories-btn:hover {
-    background: var(--zen-primary);
-    color: white;
-    border-color: var(--zen-primary);
-}
-
-/* Modal de Gerenciar Categorias */
-.category-modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-}
-
-.category-modal.show {
-    display: flex;
-}
-
-.category-modal-content {
-    background: var(--zen-card);
-    border-radius: 24px;
-    padding: 24px;
-    max-width: 400px;
-    width: 100%;
-    max-height: 80vh;
-    overflow-y: auto;
-}
-
-.category-modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 20px;
-}
-
-.category-modal-header h2 {
-    font-size: 18px;
-    font-weight: 700;
-}
-
-.close-modal-btn {
-    width: 32px;
-    height: 32px;
-    border: none;
-    background: var(--zen-bg-warm);
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    color: var(--zen-text-secondary);
-    transition: all 0.3s ease;
-}
-
-.close-modal-btn:hover {
-    background: var(--zen-red);
-    color: white;
-}
-
-.category-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-.category-list-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 16px;
-    background: var(--zen-bg-warm);
-    border-radius: 12px;
-    border: 2px solid var(--zen-border);
-    transition: all 0.3s ease;
-}
-
-.category-list-item:hover {
-    border-color: var(--zen-primary);
-}
-
-.category-list-item .cat-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.category-list-item .cat-icon {
-    font-size: 20px;
-}
-
-.category-list-item .cat-name {
-    font-weight: 600;
-    font-size: 14px;
-}
-
-.delete-cat-btn {
-    width: 32px;
-    height: 32px;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    color: var(--zen-red);
-    border-radius: 8px;
-    transition: all 0.3s ease;
-}
-
-.delete-cat-btn:hover {
-    background: rgba(248, 113, 113, 0.2);
-}
-
-.add-category-form {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding-top: 16px;
-    border-top: 1px solid var(--zen-border);
-}
-
-.add-category-form input {
-    padding: 12px 16px;
-    border: 2px solid var(--zen-border);
-    border-radius: 12px;
-    font-size: 14px;
-    font-family: inherit;
-    transition: all 0.3s ease;
-}
-
-.add-category-form input:focus {
-    outline: none;
-    border-color: var(--zen-primary);
-}
-
-.add-category-form button {
-    padding: 12px;
-    background: var(--zen-primary);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.add-category-form button:hover {
-    background: var(--zen-primary-dark);
-}
-
-/* Conteúdo Principal */
-.app-main {
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-}
-
-/* Cartão de Entrada de Tarefa */
-.input-zen-card {
-    background: var(--zen-card);
-    border-radius: 24px;
-    padding: 24px;
-    box-shadow: 0 8px 40px var(--zen-card-shadow);
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.input-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: var(--zen-bg-warm);
-    border-radius: 16px;
-    padding: 6px 16px;
-    border: 2px solid transparent;
-    transition: all 0.4s ease;
-}
-
-.input-wrapper:focus-within {
-    border-color: var(--zen-primary);
-    background: white;
-    box-shadow: 0 0 30px rgba(139, 92, 246, 0.1);
-}
-
-.zen-input-icon {
-    color: var(--zen-primary);
-    font-size: 18px;
-    flex-shrink: 0;
-}
-
-.input-wrapper input {
-    flex: 1;
-    background: transparent;
-    border: none;
-    padding: 14px 0;
-    font-size: 15px;
-    color: var(--zen-text);
-    outline: none;
-}
-
-.input-wrapper input::placeholder {
-    color: var(--zen-text-secondary);
-}
-
-/* Seletor de Categoria */
-.category-section {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.zen-label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--zen-text-secondary);
-    font-size: 13px;
-    font-weight: 500;
-}
-
-.zen-label svg {
-    width: 16px;
-    height: 16px;
-    color: var(--zen-primary);
-}
-
-.category-options {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.category-option {
-    position: relative;
-    cursor: pointer;
-    flex: 1;
-    min-width: 70px;
-}
-
-.category-option input {
-    display: none;
-}
-
-.category-tag {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 10px 14px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    background: var(--zen-bg-warm);
-    border: 2px solid var(--zen-border);
-}
-
-.category-tag .cat-icon {
-    font-size: 14px;
-}
-
-.category-option input:checked + .category-tag {
-    transform: translateY(-2px);
-    background: rgba(139, 92, 246, 0.12);
-    border-color: var(--zen-primary);
-    color: var(--zen-primary-dark);
-    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
-}
-
-/* Seletor de Data */
-.date-section {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    min-width: 0;
-}
-
-.date-input-group {
-    flex: 1;
-    min-width: 140px;
-    min-width: 0;
-    overflow: hidden;
-}
-
-.date-input-group label {
-    display: block;
-    font-size: 11px;
-    color: var(--zen-text-secondary);
-    margin-bottom: 6px;
-    font-weight: 500;
-}
-
-.date-input-group input {
-    width: 100%;
-    padding: 10px 12px;
-    border: 2px solid var(--zen-border);
-    border-radius: 12px;
-    font-size: 14px;
-    font-family: inherit;
-    background: var(--zen-bg-warm);
-    color: var(--zen-text);
-    transition: all 0.3s ease;
-    box-sizing: border-box;
-    min-width: 0;
-    overflow: hidden;
-}
-
-input[type="time"] {
-    -webkit-appearance: none;
-    appearance: none;
-    padding-right: 8px;
-}
-
-/* Seletor de hora customizado (substitui input[type=time] nativo) */
-.time-select-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    width: 100%;
-    padding: 8px 12px;
-    border: 2px solid var(--zen-border);
-    border-radius: 12px;
-    background: var(--zen-bg-warm);
-    box-sizing: border-box;
-    transition: all 0.3s ease;
-}
-
-.time-select-wrapper:focus-within {
-    border-color: var(--zen-primary);
-    background: white;
-}
-
-.time-select {
-    flex: 1;
-    border: none;
-    background: transparent;
-    font-size: 14px;
-    font-family: inherit;
-    color: var(--zen-text);
-    outline: none;
-    cursor: pointer;
-    -webkit-appearance: none;
-    appearance: none;
-    text-align: center;
-    padding: 2px 0;
-}
-
-.time-colon {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--zen-text-secondary);
-    flex-shrink: 0;
-}
-
-.date-input-group input:focus {
-    outline: none;
-    border-color: var(--zen-primary);
-    background: white;
-}
-
-/* Seletor de Prioridade */
-.priority-zen-section {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.zen-priority-options {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.zen-priority {
-    position: relative;
-    cursor: pointer;
-    flex: 1;
-    min-width: 100px;
-}
-
-.zen-priority input {
-    display: none;
-}
-
-.zen-tag {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 14px 16px;
-    border-radius: 14px;
-    font-size: 13px;
-    font-weight: 600;
-    transition: all 0.4s ease;
-    background: var(--zen-bg-warm);
-    border: 2px solid var(--zen-border);
-}
-
-.zen-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    transition: all 0.3s ease;
-    flex-shrink: 0;
-}
-
-.zen-priority.low .zen-dot { background: var(--zen-green); }
-.zen-priority.medium .zen-dot { background: var(--zen-yellow); }
-.zen-priority.high .zen-dot { background: var(--zen-red); }
-
-.zen-priority.low .zen-text { color: var(--zen-green-dark); }
-.zen-priority.medium .zen-text { color: var(--zen-yellow-dark); }
-.zen-priority.high .zen-text { color: var(--zen-red-dark); }
-
-.zen-priority input:checked + .zen-tag {
-    transform: translateY(-2px);
-}
-
-.zen-priority.low input:checked + .zen-tag {
-    background: rgba(16, 185, 129, 0.12);
-    border-color: var(--zen-green);
-    box-shadow: 0 6px 25px rgba(16, 185, 129, 0.25);
-}
-
-.zen-priority.medium input:checked + .zen-tag {
-    background: rgba(251, 191, 36, 0.12);
-    border-color: var(--zen-yellow);
-    box-shadow: 0 6px 25px rgba(251, 191, 36, 0.25);
-}
-
-.zen-priority.high input:checked + .zen-tag {
-    background: rgba(248, 113, 113, 0.12);
-    border-color: var(--zen-red);
-    box-shadow: 0 6px 25px rgba(248, 113, 113, 0.25);
-}
-
-/* Botão Adicionar */
-.zen-add-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    padding: 16px 24px;
-    background: linear-gradient(135deg, var(--zen-primary) 0%, var(--zen-primary-light) 100%);
-    border: none;
-    border-radius: 16px;
-    color: white;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.4s ease;
-    box-shadow: 0 6px 25px rgba(139, 92, 246, 0.3);
-}
-
-.zen-add-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4);
-}
-
-.zen-add-btn svg {
-    width: 18px;
-    height: 18px;
-}
-
-/* Seção de Estatísticas */
-.zen-stats {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-}
-
-.zen-stat-card {
-    background: var(--zen-card);
-    border-radius: 18px;
-    padding: 16px 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    box-shadow: 0 4px 20px var(--zen-card-shadow);
-    transition: all 0.4s ease;
-}
-
-.zen-stat-card:hover {
-    transform: translateY(-4px);
-}
-
-.zen-stat-circle {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    font-weight: 700;
-    color: white;
-}
-
-.zen-stat-circle.total { background: linear-gradient(135deg, var(--zen-primary) 0%, var(--zen-primary-light) 100%); }
-.zen-stat-circle.completed { background: linear-gradient(135deg, var(--zen-green) 0%, var(--zen-green-light) 100%); }
-.zen-stat-circle.pending { background: linear-gradient(135deg, var(--zen-yellow) 0%, var(--zen-yellow-light) 100%); }
-.zen-stat-circle.overdue { background: linear-gradient(135deg, var(--zen-red) 0%, var(--zen-red-light) 100%); }
-
-.zen-stat-info {
-    text-align: center;
-}
-
-.zen-stat-title {
-    display: block;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--zen-text);
-}
-
-.zen-stat-subtitle {
-    display: block;
-    font-size: 10px;
-    color: var(--zen-text-secondary);
-    margin-top: 2px;
-}
-
-/* Seção de Abas de Filtros */
-.filter-tabs {
-    display: flex;
-    gap: 6px;
-    padding: 4px;
-    background: var(--zen-card);
-    border-radius: 18px;
-    box-shadow: 0 4px 20px var(--zen-card-shadow);
-    flex-wrap: wrap;
-    overflow: visible;
-    max-width: 100%;
-}
-
-.filter-tabs::-webkit-scrollbar {
-    display: none;
-}
-
-.zen-filter-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 8px 14px;
-    min-height: 36px;
-    background: #f2f2f2;
-    border: 1px solid #e5e5e5;
-    border-radius: 100px;
-    color: #5a6772;
-    font-size: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    white-space: nowrap;
-}
-
-.zen-filter-btn:hover {
-    background: var(--zen-accent);
-    color: var(--zen-primary);
-}
-
-.zen-filter-btn.active {
-    color: white;
-    border-color: #000000;
-    font-weight: 600;
-}
-
-.zen-filter-btn.all.active { background: var(--zen-primary); }
-.zen-filter-btn.pending.active { background: var(--zen-yellow); color: var(--zen-text); border-color: #000000; }
-.zen-filter-btn.completed.active { background: var(--zen-green); }
-.zen-filter-btn.overdue.active { background: var(--zen-red); }
-.zen-filter-btn.priority-low.active { background: var(--zen-green); }
-.zen-filter-btn.priority-medium.active { background: var(--zen-yellow); color: var(--zen-text); border-color: #000000; }
-.zen-filter-btn.priority-high.active { background: var(--zen-red); }
-
-/* Container dos Filtros de Categoria */
-#categoryFiltersContainer {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    flex-wrap: wrap;
-}
-
-/* Filtros de Categoria */
-.category-filter-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 8px 14px;
-    min-height: 36px;
-    background: #f2f2f2;
-    border: 1px solid #e5e5e5;
-    border-radius: 100px;
-    color: #5a6772;
-    font-size: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    white-space: nowrap;
-}
-
-.category-filter-btn:hover {
-    background: var(--zen-accent);
-    color: var(--zen-primary);
-}
-
-.category-filter-btn.active {
-    color: #f5f5f5;
-    border-color: #000000;
-    border-width: 2px;
-    font-weight: 600;
-    background: #5b5d5f;
-}
-
-/* Cores de active para cada categoria */
-.category-filter-btn[data-category-filter="casa"].active { background: var(--cat-casa); color: white; }
-.category-filter-btn[data-category-filter="trabalho"].active { background: var(--cat-trabalho); color: white; }
-.category-filter-btn[data-category-filter="pessoal"].active { background: var(--cat-pessoal); color: white; }
-.category-filter-btn[data-category-filter="estudos"].active { background: var(--cat-estudos); color: white; }
-
-/* Lista de Tarefas */
-.zen-task-list {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-/* Item de Tarefa */
-.zen-task-item {
-    background: var(--zen-card);
-    border-radius: 18px;
-    padding: 18px;
-    border: 1px solid var(--zen-border);
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
-    transition: all 0.4s ease;
-    animation: zenSlideIn 0.5s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-@keyframes zenSlideIn {
-    from { opacity: 0; transform: translateY(15px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.zen-task-item:hover {
-    border-color: var(--zen-primary);
-    box-shadow: 0 6px 25px var(--zen-card-shadow);
-}
-
-.zen-task-item.completed {
-    opacity: 0.6;
-    background: var(--zen-bg-warm);
-}
-
-.zen-task-item.removing {
-    animation: zenSlideOut 0.5s ease forwards;
-}
-
-@keyframes zenSlideOut {
-    to { opacity: 0; transform: translateX(80px) scale(0.95); }
-}
-
-.zen-task-item.overdue {
-    border-left: 4px solid var(--zen-red);
-}
-
-/* Animação de Check */
-.zen-task-item.checking {
-    animation: checkPulse 0.6s ease;
-}
-
-@keyframes checkPulse {
-    0% { transform: scale(1); }
-    30% { transform: scale(1.02); background: rgba(16, 185, 129, 0.1); }
-    60% { transform: scale(0.98); }
-    100% { transform: scale(1); }
-}
-
-/* Checkbox Personalizado */
-.zen-checkbox {
-    position: relative;
-    width: 26px;
-    height: 26px;
-    flex-shrink: 0;
-}
-
-.zen-checkbox input {
-    position: absolute;
-    opacity: 0;
-    width: 100%;
-    height: 100%;
-    cursor: pointer;
-    z-index: 1;
-}
-
-.zen-checkbox .zen-checkmark {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 26px;
-    height: 26px;
-    border: 2px solid var(--zen-border);
-    border-radius: 50%;
-    transition: all 0.4s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: white;
-}
-
-.zen-checkbox input:checked + .zen-checkmark {
-    background: linear-gradient(135deg, var(--zen-green) 0%, var(--zen-green-light) 100%);
-    border-color: var(--zen-green);
-    animation: checkBounce 0.5s ease;
-}
-
-@keyframes checkBounce {
-    0% { transform: scale(1); }
-    30% { transform: scale(1.3); }
-    50% { transform: scale(0.9); }
-    70% { transform: scale(1.1); }
-    100% { transform: scale(1); }
-}
-
-.zen-checkbox .zen-checkmark svg {
-    width: 14px;
-    height: 14px;
-    color: white;
-    opacity: 0;
-    transform: scale(0);
-    transition: all 0.3s ease;
-}
-
-.zen-checkbox input:checked + .zen-checkmark svg {
-    opacity: 1;
-    transform: scale(1);
-}
-
-/* Conteúdo da Tarefa */
-.zen-task-content {
-    flex: 1;
-    min-width: 0;
-}
-
-.zen-task-text {
-    font-size: 15px;
-    font-weight: 500;
-    line-height: 1.5;
-    word-break: break-word;
-    transition: all 0.4s ease;
-    margin-bottom: 10px;
-}
-
-.zen-task-item.completed .zen-task-text {
-    text-decoration: line-through;
-    color: var(--zen-text-secondary);
-}
-
-/* Metadados da Tarefa */
-.zen-task-meta {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.zen-task-date {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 11px;
-    color: var(--zen-text-secondary);
-}
-
-.zen-task-date svg {
-    width: 11px;
-    height: 11px;
-}
-
-.zen-task-date.overdue {
-    color: var(--zen-red);
-    font-weight: 600;
-}
-
-/* Badge de Categoria */
-.zen-category-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 10px;
-    font-weight: 600;
-}
-
-/* Badge de Prioridade */
-.zen-priority-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 5px 10px;
-    border-radius: 15px;
-    font-size: 11px;
-    font-weight: 600;
-}
-
-.zen-priority-badge.baixa { background: rgba(16, 185, 129, 0.12); color: var(--zen-green-dark); }
-.zen-priority-badge.media { background: rgba(251, 191, 36, 0.12); color: var(--zen-yellow-dark); }
-.zen-priority-badge.alta { background: rgba(248, 113, 113, 0.12); color: var(--zen-red-dark); }
-
-/* Ações da Tarefa */
-.zen-task-actions {
-    display: flex;
-    gap: 6px;
-    flex-shrink: 0;
-}
-
-.zen-task-btn {
-    width: 38px;
-    height: 38px;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-}
-
-.zen-task-btn svg {
-    width: 15px;
-    height: 15px;
-}
-
-.zen-edit-btn {
-    background: var(--zen-accent);
-    color: var(--zen-primary);
-}
-
-.zen-edit-btn:hover {
-    background: var(--zen-primary);
-    color: white;
-}
-
-.zen-delete-btn {
-    background: rgba(248, 113, 113, 0.12);
-    color: var(--zen-red);
-}
-
-.zen-delete-btn:hover {
-    background: var(--zen-red);
-    color: white;
-}
-
-/* Estado Vazio */
-.zen-empty-state {
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 60px 20px;
-    text-align: center;
-    background: var(--zen-card);
-    border-radius: 24px;
-    box-shadow: 0 8px 40px var(--zen-card-shadow);
-}
-
-.zen-empty-state.show {
-    display: flex;
-}
-
-.zen-empty-mandala {
-    position: relative;
-    width: 100px;
-    height: 100px;
-    margin-bottom: 20px;
-}
-
-.mandala-ring {
-    position: absolute;
-    border-radius: 50%;
-    border: 2px solid var(--zen-accent);
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    animation: zenRotate 20s linear infinite;
-}
-
-.mandala-ring.r1 { width: 100px; height: 100px; border-color: rgba(139, 92, 246, 0.2); }
-.mandala-ring.r2 { width: 70px; height: 70px; border-color: rgba(16, 185, 129, 0.2); animation-direction: reverse; animation-duration: 15s; }
-.mandala-ring.r3 { width: 40px; height: 40px; border-color: rgba(251, 191, 36, 0.2); animation-duration: 10s; }
-
-@keyframes zenRotate {
-    from { transform: translate(-50%, -50%) rotate(0deg); }
-    to { transform: translate(-50%, -50%) rotate(360deg); }
-}
-
-.mandala-center {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 40px;
-    height: 40px;
-    background: linear-gradient(135deg, var(--zen-primary) 0%, var(--zen-primary-light) 100%);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.mandala-center svg {
-    width: 18px;
-    height: 18px;
-    color: white;
-}
-
-.zen-empty-state h3 {
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 6px;
-    color: var(--zen-text);
-}
-
-.zen-empty-state p {
-    color: var(--zen-text-secondary);
-    font-size: 13px;
-}
-
-/* Rodapé */
-.zen-footer {
-    text-align: center;
-    padding: 20px 16px;
-    background: var(--zen-card);
-    border-radius: 20px;
-    box-shadow: 0 4px 20px var(--zen-card-shadow);
-}
-
-.zen-footer-content {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    color: var(--zen-text-secondary);
-    font-size: 12px;
-}
-
-.zen-footer-content svg {
-    width: 12px;
-    height: 12px;
-    color: var(--zen-primary);
-    opacity: 0.5;
-}
-
-/* Animação de Tremor */
-@keyframes zenShake {
-    0%, 100% { transform: translateX(0); }
-    20%, 60% { transform: translateX(-6px); }
-    40%, 80% { transform: translateX(6px); }
-}
-
-/* Toast de Notificação */
-.toast {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%) translateY(100px);
-    background: var(--zen-card);
-    padding: 16px 24px;
-    border-radius: 16px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    z-index: 2000;
-    opacity: 0;
-    transition: all 0.4s ease;
-}
-
-.toast.show {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-}
-
-.toast-icon {
-    font-size: 24px;
-}
-
-.toast-message {
-    font-size: 14px;
-    font-weight: 600;
-}
-
-/* Responsividade para Mobile */
-@media (max-width: 480px) {
-    body {
-        padding: 16px 10px;
-    }
-
-    .app-header {
-        padding: 24px 18px;
-        border-radius: 20px;
-    }
-
-    .zen-icon {
-        width: 48px;
-        height: 48px;
-        font-size: 20px;
-    }
-
-    .header-title h1 {
-        font-size: 22px;
-    }
-
-    .streak-container {
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .streak-info {
-        text-align: center;
-    }
-
-    .streak-fire {
-        width: 50px;
-        height: 50px;
-    }
-
-    .streak-fire-icon {
-        font-size: 32px;
-    }
-
-    .streak-count {
-        font-size: 28px;
-    }
-
-    .input-zen-card {
-        padding: 20px;
-        border-radius: 20px;
-    }
-
-    .category-options {
-        flex-direction: column;
-    }
-
-    .zen-priority-options {
-        flex-direction: column;
-    }
-
-    .zen-stats {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
-    }
-
-    .zen-stat-card {
-        padding: 14px 8px;
-    }
-
-    .zen-task-item {
-        padding: 16px;
-        flex-wrap: wrap;
-    }
-
-    .zen-task-content {
-        width: calc(100% - 44px);
-    }
-
-    .zen-task-actions {
-        width: 100%;
-        justify-content: flex-end;
-        margin-top: 8px;
-    }
-
-    /* Correção dos Filtros de Categoria para Mobile */
-    .filter-tabs {
-        flex-wrap: wrap;
-        gap: 6px;
-        padding: 8px;
-        border-radius: 16px;
-    }
-
-    .zen-filter-btn,
-    .category-filter-btn {
-        flex: 1 1 auto;
-        min-width: calc(50% - 6px);
-        max-width: 100%;
-        padding: 10px 12px;
-        font-size: 11px;
-        justify-content: flex-start;
-        gap: 6px;
-    }
-
-    #categoryFiltersContainer {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        width: 100%;
-    }
-}
-
-/* Botões amigáveis para toque */
-@media (hover: none) {
-    .zen-add-btn:active,
-    .zen-task-btn:active,
-    .zen-filter-btn:active {
-        transform: scale(0.96);
-    }
-}
-    
-/* ==========================================
-   MODAL DE EDIÇÃO DE TAREFA
-   ========================================== */
-.edit-modal {
-    display: none;
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.5);
-    z-index: 2000;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-}
-.edit-modal.show { display: flex; }
-
-.edit-modal-content {
-    background: var(--zen-card);
-    border-radius: 24px;
-    padding: 24px;
-    max-width: 420px;
-    width: 100%;
-    max-height: 90vh;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-}
-
-.edit-modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.edit-modal-header h2 {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--zen-text);
-}
-
-.edit-field label {
-    display: block;
-    font-size: 11px;
-    color: var(--zen-text-secondary);
-    font-weight: 600;
-    margin-bottom: 6px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.edit-field input[type="text"],
-.edit-field input[type="date"] {
-    width: 100%;
-    padding: 12px 14px;
-    border: 2px solid var(--zen-border);
-    border-radius: 12px;
-    font-size: 15px;
-    font-family: inherit;
-    background: var(--zen-bg-warm);
-    color: var(--zen-text);
-    box-sizing: border-box;
-    outline: none;
-    transition: border-color 0.3s;
-}
-
-.edit-field input[type="text"]:focus,
-.edit-field input[type="date"]:focus {
-    border-color: var(--zen-primary);
-    background: white;
-}
-
-.edit-time-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    width: 100%;
-    padding: 10px 14px;
-    border: 2px solid var(--zen-border);
-    border-radius: 12px;
-    background: var(--zen-bg-warm);
-    box-sizing: border-box;
-    transition: border-color 0.3s;
-}
-
-.edit-time-wrapper:focus-within {
-    border-color: var(--zen-primary);
-    background: white;
-}
-
-.edit-time-select {
-    flex: 1;
-    border: none;
-    background: transparent;
-    font-size: 15px;
-    font-family: inherit;
-    color: var(--zen-text);
-    outline: none;
-    -webkit-appearance: none;
-    appearance: none;
-    text-align: center;
-    cursor: pointer;
-}
-
-.edit-priority-options {
-    display: flex;
-    gap: 8px;
-}
-
-.edit-priority-options label {
-    flex: 1;
-    cursor: pointer;
-}
-
-.edit-priority-options input { display: none; }
-
-.edit-priority-tag {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 12px 10px;
-    border-radius: 12px;
-    font-size: 13px;
-    font-weight: 600;
-    border: 2px solid var(--zen-border);
-    background: var(--zen-bg-warm);
-    transition: all 0.3s;
-}
-
-.edit-priority-dot {
-    width: 10px; height: 10px;
-    border-radius: 50%;
-    flex-shrink: 0;
-}
-
-.ep-low .edit-priority-dot  { background: var(--zen-green); }
-.ep-medium .edit-priority-dot { background: var(--zen-yellow); }
-.ep-high .edit-priority-dot  { background: var(--zen-red); }
-
-.ep-low input:checked + .edit-priority-tag  { background: rgba(16,185,129,0.12); border-color: var(--zen-green); }
-.ep-medium input:checked + .edit-priority-tag { background: rgba(251,191,36,0.12); border-color: var(--zen-yellow); }
-.ep-high input:checked + .edit-priority-tag  { background: rgba(248,113,113,0.12); border-color: var(--zen-red); }
-
-.edit-save-btn {
-    padding: 14px;
-    background: linear-gradient(135deg, var(--zen-primary) 0%, var(--zen-primary-light) 100%);
-    color: white;
-    border: none;
-    border-radius: 14px;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s;
-    box-shadow: 0 4px 20px rgba(139,92,246,0.3);
-}
-
-/* ==========================================
-   STATUS DE SINCRONIZAÇÃO FIREBASE
-   ========================================== */
-.sync-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    margin-top: 10px;
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-    transition: all 0.4s ease;
-}
-.sync-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    flex-shrink: 0;
-}
-.sync-connecting { background: rgba(107,114,128,0.12); color: #6b7280; }
-.sync-connecting .sync-dot { background: #9ca3af; animation: syncPulse 1.2s ease-in-out infinite; }
-.sync-online { background: rgba(16,185,129,0.12); color: #059669; }
-.sync-online .sync-dot { background: #10b981; }
-.sync-offline { background: rgba(251,191,36,0.15); color: #b45309; }
-.sync-offline .sync-dot { background: #f59e0b; }
-.sync-error { background: rgba(248,113,113,0.12); color: #dc2626; }
-.sync-error .sync-dot { background: #f87171; }
-.sync-no-config { background: rgba(139,92,246,0.10); color: #7c3aed; }
-.sync-no-config .sync-dot { background: #8b5cf6; }
-@keyframes syncPulse {
-    0%,100% { opacity:1; transform: scale(1); }
-    50%      { opacity:.4; transform: scale(1.3); }
-}
-
-/* Botão instalar PWA */
-.pwa-install-btn {
-    display: none;
-    align-items: center;
-    gap: 8px;
-    margin-top: 8px;
-    padding: 8px 18px;
-    background: linear-gradient(135deg, var(--zen-primary) 0%, var(--zen-primary-light) 100%);
-    border: none;
-    border-radius: 20px;
-    color: white;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(139,92,246,0.3);
-}
-.pwa-install-btn.show { display: inline-flex; }
-.pwa-install-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(139,92,246,0.4); }
-
-/* Botão de login para modo offline */
-.login-prompt-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: 6px;
-    padding: 6px 14px;
-    background: linear-gradient(135deg, var(--zen-primary) 0%, var(--zen-primary-light) 100%);
-    border: none;
-    border-radius: 20px;
-    color: white;
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 3px 12px rgba(139,92,246,0.3);
-}
-.login-prompt-btn:hover { transform: translateY(-1px); }
-.login-prompt-btn.hidden { display: none; }
-
-/* ==========================================
-   TELA DE LOGIN
-   ========================================== */
-#loginScreen {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: var(--zen-bg);
-    z-index: 9999;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: 24px;
-    background-image:
-        radial-gradient(circle at 10% 20%, rgba(16,185,129,0.07) 0%, transparent 40%),
-        radial-gradient(circle at 90% 80%, rgba(139,92,246,0.07) 0%, transparent 40%);
-}
-#loginScreen.show { display: flex; }
-.login-card {
-    background: white;
-    border-radius: 28px;
-    padding: 40px 36px;
-    max-width: 380px;
-    width: 90%;
-    text-align: center;
-    box-shadow: 0 20px 60px rgba(139,92,246,0.12);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-}
-.login-logo {
-    width: 72px; height: 72px;
-    background: linear-gradient(135deg, var(--zen-primary) 0%, var(--zen-primary-light) 100%);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 8px 25px rgba(139,92,246,0.35);
-    animation: zenPulse 4s ease-in-out infinite;
-}
-.login-logo svg { width: 36px; height: 36px; color: white; }
-.login-card h1 { font-size: 26px; font-weight: 800; color: var(--zen-text); }
-.login-card h1 span {
-    background: linear-gradient(135deg, var(--zen-primary) 0%, var(--zen-primary-light) 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-}
-.login-card p { color: var(--zen-text-secondary); font-size: 14px; line-height: 1.6; }
-.google-login-btn {
-    display: flex; align-items: center; gap: 12px;
-    padding: 14px 24px;
-    background: white;
-    border: 2px solid var(--zen-border);
-    border-radius: 14px;
-    font-size: 15px; font-weight: 600; color: var(--zen-text);
-    cursor: pointer; transition: all 0.3s ease;
-    width: 100%; justify-content: center;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
-}
-.google-login-btn:hover {
-    border-color: var(--zen-primary);
-    box-shadow: 0 6px 20px rgba(139,92,246,0.15);
-    transform: translateY(-2px);
-}
-.google-login-btn svg { width: 22px; height: 22px; flex-shrink: 0; }
-.user-info {
-    display: none; align-items: center; gap: 6px;
-    padding: 5px 10px 5px 5px;
-    background: var(--zen-accent);
-    border-radius: 20px;
-    font-size: 11px; font-weight: 600; color: var(--zen-primary-dark);
-    position: absolute;
-    top: 12px; right: 12px;
-    max-width: 150px;
-    z-index: 10;
-}
-.user-info.show { display: inline-flex; }
-.user-avatar {
-    width: 24px; height: 24px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid var(--zen-primary);
-    flex-shrink: 0;
-    background: var(--zen-primary);
-}
-#userName {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 60px;
-}
-.logout-btn {
-    background: none; border: none; color: var(--zen-text-secondary);
-    cursor: pointer; font-size: 10px; padding: 2px 5px; border-radius: 8px;
-    transition: all 0.2s; flex-shrink: 0; white-space: nowrap;
-}
-.logout-btn:hover { background: var(--zen-red); color: white; }
-
-.skip-login-btn {
-    background: none;
-    border: none;
-    color: var(--zen-text-secondary);
-    font-size: 13px;
-    cursor: pointer;
-    padding: 8px;
-    border-radius: 10px;
-    transition: all 0.2s;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-}
-.skip-login-btn:hover { color: var(--zen-primary); }
-
-</style>
-
+    <!-- VAPID Key para Push Notifications (substitua com sua chave pública) -->
+    <script>
+        window.VAPID_PUBLIC_KEY = 'BCk-qMYsQ9sbfyr7A8Ap5aV8T-e8n2vC6gJyEDsXqPj7kPkRaJFL6aBvNpXzYQ7EJF6T5nKJ3h7TqL2eR8h9aU';
+    </script>
 </head>
+
 <body>
     <!-- TELA DE LOGIN -->
     <div id="loginScreen">
@@ -1890,6 +73,7 @@ input[type="time"] {
             <button class="skip-login-btn" id="skipLoginBtn">Continuar sem login (só offline)</button>
         </div>
     </div>
+
     <div class="app-container">
         <!-- CABECALHO -->
         <header class="app-header">
@@ -1932,21 +116,34 @@ input[type="time"] {
                 <span class="sync-dot"></span>
                 <span class="sync-label" id="syncLabel">Conectando...</span>
             </div>
+
             <!-- Botão para logar quando offline -->
             <button class="login-prompt-btn hidden" id="loginPromptBtn">
-                ☁️ Entrar para sincronizar
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                </svg>
+                Entrar para sincronizar
             </button>
 
-            <!-- Info do usuário logado (canto superior direito) -->
+            <!-- Info do usuário logado -->
             <div class="user-info" id="userInfo">
                 <img class="user-avatar" id="userAvatar" src="" alt="">
                 <span id="userName"></span>
                 <button class="logout-btn" id="logoutBtn">Sair</button>
             </div>
 
-            <button class="pwa-install-btn" id="pwaInstallBtn">
-                📲 Instalar App
-            </button>
+            <!-- Botão de Instalação PWA Melhorado -->
+            <div class="pwa-install-section" id="pwaInstallSection">
+                <button class="pwa-install-btn" id="pwaInstallBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                    </svg>
+                    <span id="pwaInstallText">Instalar App</span>
+                </button>
+                <div class="pwa-install-info" id="pwaInstallInfo">
+                    <small>Funciona offline e sincroniza automaticamente</small>
+                </div>
+            </div>
 
             <!-- Botão Gerenciar Categorias -->
             <button class="manage-categories-btn" id="manageCategoriesBtn">
@@ -1964,9 +161,7 @@ input[type="time"] {
                     <h2>Gerenciar Categorias</h2>
                     <button class="close-modal-btn" id="closeModalBtn">X</button>
                 </div>
-                <div class="category-list" id="categoryList">
-                    <!-- Categorias serão renderizadas aqui -->
-                </div>
+                <div class="category-list" id="categoryList"></div>
                 <div class="add-category-form">
                     <input type="text" id="newCategoryName" placeholder="Digite o nome da nova categoria...">
                     <button id="addCategoryBtn">Adicionar Categoria</button>
@@ -1986,23 +181,19 @@ input[type="time"] {
                     <input type="text" id="tarefaInput" placeholder="Digite sua tarefa...">
                 </div>
 
-                <!-- Seletor de Categoria -->
                 <div class="category-section">
                     <span class="zen-label">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
                         </svg>
-                        Categoria (Pasta)
+                        Categoria
                     </span>
-                    <div class="category-options" id="categoryOptions">
-                        <!-- Categorias serão renderizadas aqui -->
-                    </div>
+                    <div class="category-options" id="categoryOptions"></div>
                 </div>
 
-                <!-- Seletor de Data -->
                 <div class="date-section">
                     <div class="date-input-group">
-                        <label for="dataLimite">Data Limite (Prazo)</label>
+                        <label for="dataLimite">Data Limite</label>
                         <input type="date" id="dataLimite">
                     </div>
                     <div class="date-input-group">
@@ -2015,14 +206,13 @@ input[type="time"] {
                     </div>
                 </div>
 
-                <!-- Seletor de Prioridade -->
                 <div class="priority-zen-section">
                     <span class="zen-label">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
                             <line x1="4" y1="22" x2="4" y2="15"/>
                         </svg>
-                        Nível de Prioridade
+                        Prioridade
                     </span>
                     <div class="zen-priority-options">
                         <label class="zen-priority low">
@@ -2060,36 +250,28 @@ input[type="time"] {
             <!-- ESTATÍSTICAS -->
             <div class="zen-stats">
                 <div class="zen-stat-card">
-                    <div class="zen-stat-circle total">
-                        <span id="totalTasks">0</span>
-                    </div>
+                    <div class="zen-stat-circle total"><span id="totalTasks">0</span></div>
                     <div class="zen-stat-info">
                         <span class="zen-stat-title">Total</span>
                         <span class="zen-stat-subtitle">Tarefas</span>
                     </div>
                 </div>
                 <div class="zen-stat-card">
-                    <div class="zen-stat-circle completed">
-                        <span id="completedTasks">0</span>
-                    </div>
+                    <div class="zen-stat-circle completed"><span id="completedTasks">0</span></div>
                     <div class="zen-stat-info">
                         <span class="zen-stat-title">Feitas</span>
                         <span class="zen-stat-subtitle">Concluídas</span>
                     </div>
                 </div>
                 <div class="zen-stat-card">
-                    <div class="zen-stat-circle pending">
-                        <span id="pendingTasks">0</span>
-                    </div>
+                    <div class="zen-stat-circle pending"><span id="pendingTasks">0</span></div>
                     <div class="zen-stat-info">
                         <span class="zen-stat-title">A Fazer</span>
                         <span class="zen-stat-subtitle">Pendentes</span>
                     </div>
                 </div>
                 <div class="zen-stat-card">
-                    <div class="zen-stat-circle overdue">
-                        <span id="overdueTasks">0</span>
-                    </div>
+                    <div class="zen-stat-circle overdue"><span id="overdueTasks">0</span></div>
                     <div class="zen-stat-info">
                         <span class="zen-stat-title">Atrasadas</span>
                         <span class="zen-stat-subtitle">Fora do Prazo</span>
@@ -2116,7 +298,7 @@ input[type="time"] {
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
                         <path d="M20 6L9 17l-5-5"/>
                     </svg>
-                    Concluídas
+                    Feitas
                 </button>
                 <button class="zen-filter-btn overdue" data-filter="overdue">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
@@ -2124,32 +306,11 @@ input[type="time"] {
                     </svg>
                     Atrasadas
                 </button>
-                <button class="zen-filter-btn priority-low" data-filter="priority-low">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
-                        <circle cx="12" cy="12" r="10"/>
-                    </svg>
-                    Baixa
-                </button>
-                <button class="zen-filter-btn priority-medium" data-filter="priority-medium">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
-                        <circle cx="12" cy="12" r="10"/>
-                    </svg>
-                    Média
-                </button>
-                <button class="zen-filter-btn priority-high" data-filter="priority-high">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
-                        <circle cx="12" cy="12" r="10"/>
-                    </svg>
-                    Alta
-                </button>
-                <!-- Filtros de Categoria serão adicionados dinamicamente -->
                 <div id="categoryFiltersContainer"></div>
             </div>
 
-            <!-- LISTA DE TAREFAS -->
             <ul id="listaTarefas" class="zen-task-list"></ul>
 
-            <!-- ESTADO VAZIO -->
             <div id="emptyState" class="zen-empty-state">
                 <div class="zen-empty-mandala">
                     <div class="mandala-ring r1"></div>
@@ -2167,41 +328,34 @@ input[type="time"] {
             </div>
         </main>
 
-        <!-- RODAPÉ -->
         <footer class="zen-footer">
             <div class="zen-footer-content">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/>
                     <path d="M12 8v8M8 12h8"/>
                 </svg>
                 <span>&copy; 2026 Guilherme Gonçalves. Todos os direitos reservados.</span>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/>
                     <path d="M12 8v8M8 12h8"/>
                 </svg>
             </div>
         </footer>
     </div>
 
-
-    <!-- MODAL DE EDIÇÃO DE TAREFA -->
+    <!-- MODAL DE EDIÇÃO -->
     <div class="edit-modal" id="editModal">
         <div class="edit-modal-content">
             <div class="edit-modal-header">
-                <h2>✏️ Editar Tarefa</h2>
-                <button class="close-modal-btn" id="closeEditModal">✕</button>
+                <h2>Editar Tarefa</h2>
+                <button class="close-modal-btn" id="closeEditModal">X</button>
             </div>
-
             <div class="edit-field">
                 <label>Nome da Tarefa</label>
                 <input type="text" id="editTexto" placeholder="Nome da tarefa...">
             </div>
-
             <div class="edit-field">
                 <label>Data Limite</label>
                 <input type="date" id="editData">
             </div>
-
             <div class="edit-field">
                 <label>Hora Limite</label>
                 <div class="edit-time-wrapper">
@@ -2210,7 +364,6 @@ input[type="time"] {
                     <select id="editMM" class="edit-time-select"></select>
                 </div>
             </div>
-
             <div class="edit-field">
                 <label>Prioridade</label>
                 <div class="edit-priority-options">
@@ -2237,148 +390,545 @@ input[type="time"] {
                     </label>
                 </div>
             </div>
-
-            <button class="edit-save-btn" id="editSaveBtn">Salvar Alterações</button>
+            <button class="edit-save-btn" id="editSaveBtn">Salvar Alteracoes</button>
         </div>
     </div>
 
-    <!-- TOAST DE NOTIFICAÇÃO -->
+    <!-- TOAST -->
     <div class="toast" id="toast">
         <span class="toast-icon" id="toastIcon"></span>
         <span class="toast-message" id="toastMessage"></span>
     </div>
 
+    <style>
+:root {
+    --zen-green: #10b981;
+    --zen-green-light: #34d399;
+    --zen-green-dark: #059669;
+    --zen-yellow: #fbbf24;
+    --zen-yellow-light: #fcd34d;
+    --zen-yellow-dark: #d97706;
+    --zen-red: #f87171;
+    --zen-red-light: #fca5a5;
+    --zen-red-dark: #dc2626;
+    --zen-primary: #8b5cf6;
+    --zen-primary-light: #a78bfa;
+    --zen-primary-dark: #7c3aed;
+    --zen-bg: #faf9f7;
+    --zen-bg-warm: #f5f3ef;
+    --zen-card: #ffffff;
+    --zen-card-shadow: rgba(139, 92, 246, 0.08);
+    --zen-text: #1f1f23;
+    --zen-text-secondary: #6b7280;
+    --zen-border: #e5e5e5;
+    --zen-accent: rgba(139, 92, 246, 0.1);
+    --cat-casa: #ec4899;
+    --cat-trabalho: #3b82f6;
+    --cat-pessoal: #8b5cf6;
+    --cat-estudos: #f59e0b;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { scroll-behavior: smooth; }
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    background: var(--zen-bg);
+    color: var(--zen-text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 20px 12px;
+    background-image:
+        radial-gradient(circle at 10% 20%, rgba(16, 185, 129, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.05) 0%, transparent 40%);
+}
+
+.app-container { width: 100%; max-width: 700px; display: flex; flex-direction: column; gap: 20px; }
+
+/* CABECALHO */
+.app-header {
+    background: var(--zen-card);
+    border-radius: 24px;
+    padding: 28px 24px;
+    box-shadow: 0 8px 40px var(--zen-card-shadow);
+    position: relative;
+    overflow: visible;
+    text-align: center;
+}
+
+.header-top { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 12px; }
+
+.zen-icon {
+    width: 56px; height: 56px;
+    background: linear-gradient(135deg, var(--zen-primary) 0%, var(--zen-primary-light) 100%);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; color: white;
+    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
+    animation: zenPulse 4s ease-in-out infinite;
+}
+
+@keyframes zenPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
+.header-title h1 { font-size: 26px; font-weight: 700; margin-bottom: 4px; }
+.header-title h1 span {
+    background: linear-gradient(135deg, var(--zen-primary) 0%, var(--zen-primary-light) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.header-title p { color: var(--zen-text-secondary); font-size: 13px; }
+
+/* STREAK */
+.streak-container {
+    display: flex; align-items: center; justify-content: center;
+    gap: 20px; margin-top: 16px; padding: 16px;
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(234, 88, 12, 0.05) 100%);
+    border-radius: 16px; border: 2px solid rgba(249, 115, 22, 0.2);
+}
+
+.streak-fire { position: relative; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; }
+.streak-fire-icon { font-size: 40px; filter: drop-shadow(0 0 10px rgba(249, 115, 22, 0.5)); animation: fireGlow 1.5s ease-in-out infinite; }
+
+@keyframes fireGlow {
+    0%, 100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(249, 115, 22, 0.5)); }
+    50% { transform: scale(1.1); filter: drop-shadow(0 0 20px rgba(249, 115, 22, 0.8)); }
+}
+
+.streak-fire.level-100 .streak-fire-icon { font-size: 60px; animation: fireGlowIntense 0.8s ease-in-out infinite; }
+
+@keyframes fireGlowIntense {
+    0%, 100% { transform: scale(1) rotate(-5deg); filter: drop-shadow(0 0 15px rgba(249, 115, 22, 0.8)) drop-shadow(0 0 30px rgba(234, 88, 12, 0.6)); }
+    50% { transform: scale(1.15) rotate(5deg); filter: drop-shadow(0 0 25px rgba(249, 115, 22, 1)) drop-shadow(0 0 50px rgba(234, 88, 12, 0.8)); }
+}
+
+.streak-info { text-align: left; }
+.streak-count { font-size: 36px; font-weight: 800; color: #ea580c; line-height: 1; }
+.streak-count span { font-size: 14px; font-weight: 500; color: var(--zen-text-secondary); }
+.streak-label { font-size: 12px; color: var(--zen-text-secondary); text-transform: uppercase; letter-spacing: 1px; }
+.streak-status { font-size: 11px; color: #ea580c; font-weight: 600; margin-top: 2px; }
+
+.streak-particles { position: absolute; width: 100%; height: 100%; pointer-events: none; display: none; }
+.streak-particles.show { display: block; }
+.particle { position: absolute; width: 6px; height: 6px; background: #fb923c; border-radius: 50%; animation: particleFloat 2s ease-out infinite; }
+.particle:nth-child(1) { left: 10%; animation-delay: 0s; }
+.particle:nth-child(2) { left: 30%; animation-delay: 0.3s; }
+.particle:nth-child(3) { left: 50%; animation-delay: 0.6s; }
+.particle:nth-child(4) { left: 70%; animation-delay: 0.9s; }
+.particle:nth-child(5) { left: 90%; animation-delay: 1.2s; }
+
+@keyframes particleFloat {
+    0% { bottom: 20%; opacity: 1; transform: scale(1); }
+    100% { bottom: 100%; opacity: 0; transform: scale(0); }
+}
+
+/* SYNC STATUS */
+.sync-status {
+    display: inline-flex; align-items: center; gap: 7px;
+    margin-top: 10px; padding: 6px 14px;
+    border-radius: 20px; font-size: 12px; font-weight: 600;
+    transition: all 0.4s ease;
+}
+.sync-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.sync-connecting { background: rgba(107,114,128,0.12); color: #6b7280; }
+.sync-connecting .sync-dot { background: #9ca3af; animation: syncPulse 1.2s ease-in-out infinite; }
+.sync-online { background: rgba(16,185,129,0.12); color: #059669; }
+.sync-online .sync-dot { background: #10b981; }
+.sync-offline { background: rgba(251,191,36,0.15); color: #b45309; }
+.sync-offline .sync-dot { background: #f59e0b; }
+.sync-error { background: rgba(248,113,113,0.12); color: #dc2626; }
+.sync-error .sync-dot { background: #f87171; }
+.sync-no-config { background: rgba(139,92,246,0.10); color: #7c3aed; }
+.sync-no-config .sync-dot { background: #8b5cf6; }
+
+@keyframes syncPulse { 0%,100% { opacity:1; transform: scale(1); } 50% { opacity:.4; transform: scale(1.3); } }
+
+/* PWA INSTALL BUTTON - MELHORADO */
+.pwa-install-section { margin-top: 10px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+
+.pwa-install-btn {
+    display: none;
+    align-items: center; gap: 8px;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, var(--zen-primary) 0%, var(--zen-primary-light) 100%);
+    border: none; border-radius: 25px;
+    color: white; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(139,92,246,0.3);
+    animation: pwaPulse 2s ease-in-out infinite;
+}
+.pwa-install-btn.show { display: inline-flex; }
+.pwa-install-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(139,92,246,0.4); }
+.pwa-install-btn:active { transform: scale(0.98); }
+
+@keyframes pwaPulse {
+    0%, 100% { box-shadow: 0 4px 15px rgba(139,92,246,0.3); }
+    50% { box-shadow: 0 4px 25px rgba(139,92,246,0.5); }
+}
+
+.pwa-install-info { font-size: 10px; color: var(--zen-text-secondary); text-align: center; }
+.pwa-install-info small { opacity: 0.8; }
+
+/* iOS Install Card */
+.ios-install-card {
+    display: none;
+    margin-top: 10px;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--zen-primary) 0%, var(--zen-primary-light) 100%);
+    border-radius: 16px;
+    color: white;
+    text-align: left;
+}
+.ios-install-card.show { display: block; }
+.ios-install-card h4 { font-size: 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.ios-install-card ol { font-size: 12px; padding-left: 20px; line-height: 1.8; }
+.ios-install-card .close-ios-card {
+    margin-top: 10px; padding: 8px 16px;
+    background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 20px; color: white; font-size: 12px; cursor: pointer;
+    width: 100%; transition: all 0.3s;
+}
+.ios-install-card .close-ios-card:hover { background: rgba(255,255,255,0.3); }
+
+/* LOGIN PROMPT */
+.login-prompt-btn {
+    display: none; align-items: center; gap: 6px;
+    margin-top: 8px; padding: 8px 16px;
+    background: linear-gradient(135deg, var(--zen-primary) 0%, var(--zen-primary-light) 100%);
+    border: none; border-radius: 20px;
+    color: white; font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: all 0.3s ease;
+    box-shadow: 0 3px 12px rgba(139,92,246,0.3);
+}
+.login-prompt-btn.show { display: inline-flex; }
+.login-prompt-btn:hover { transform: translateY(-1px); }
+
+/* USER INFO */
+.user-info {
+    display: none; align-items: center; gap: 6px;
+    padding: 5px 10px 5px 5px;
+    background: var(--zen-accent);
+    border-radius: 20px;
+    font-size: 11px; font-weight: 600; color: var(--zen-primary-dark);
+    position: absolute; top: 12px; right: 12px;
+    max-width: 150px; z-index: 10;
+}
+.user-info.show { display: inline-flex; }
+.user-avatar { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 2px solid var(--zen-primary); flex-shrink: 0; background: var(--zen-primary); }
+#userName { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60px; }
+.logout-btn { background: none; border: none; color: var(--zen-text-secondary); cursor: pointer; font-size: 10px; padding: 2px 5px; border-radius: 8px; transition: all 0.2s; flex-shrink: 0; white-space: nowrap; }
+.logout-btn:hover { background: var(--zen-red); color: white; }
+
+/* MANAGE CATEGORIES */
+.manage-categories-btn {
+    display: flex; align-items: center; justify-content: center;
+    gap: 8px; margin-top: 12px; padding: 8px 16px;
+    background: var(--zen-accent); border: 1px solid var(--zen-border);
+    border-radius: 20px; color: var(--zen-text-secondary);
+    font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.3s ease;
+}
+.manage-categories-btn:hover { background: var(--zen-primary); color: white; border-color: var(--zen-primary); }
+
+/* MODAL CATEGORIAS */
+.category-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+.category-modal.show { display: flex; }
+.category-modal-content { background: var(--zen-card); border-radius: 24px; padding: 24px; max-width: 400px; width: 100%; max-height: 80vh; overflow-y: auto; }
+.category-modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.category-modal-header h2 { font-size: 18px; font-weight: 700; }
+.close-modal-btn { width: 32px; height: 32px; border: none; background: var(--zen-bg-warm); border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--zen-text-secondary); transition: all 0.3s ease; }
+.close-modal-btn:hover { background: var(--zen-red); color: white; }
+.category-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+.category-list-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--zen-bg-warm); border-radius: 12px; border: 2px solid var(--zen-border); transition: all 0.3s ease; }
+.category-list-item:hover { border-color: var(--zen-primary); }
+.category-list-item .cat-info { display: flex; align-items: center; gap: 10px; }
+.category-list-item .cat-icon { font-size: 20px; }
+.category-list-item .cat-name { font-weight: 600; font-size: 14px; }
+.delete-cat-btn { width: 32px; height: 32px; border: none; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; color: var(--zen-red); border-radius: 8px; transition: all 0.3s ease; }
+.delete-cat-btn:hover { background: rgba(248,113,113,0.2); }
+
+.add-category-form { display: flex; flex-direction: column; gap: 12px; padding-top: 16px; border-top: 1px solid var(--zen-border); }
+.add-category-form input { padding: 12px 16px; border: 2px solid var(--zen-border); border-radius: 12px; font-size: 14px; font-family: inherit; transition: all 0.3s ease; }
+.add-category-form input:focus { outline: none; border-color: var(--zen-primary); }
+.add-category-form button { padding: 12px; background: var(--zen-primary); color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+.add-category-form button:hover { background: var(--zen-primary-dark); }
+
+/* MAIN */
+.app-main { display: flex; flex-direction: column; gap: 18px; }
+
+.input-zen-card { background: var(--zen-card); border-radius: 24px; padding: 24px; box-shadow: 0 8px 40px var(--zen-card-shadow); display: flex; flex-direction: column; gap: 20px; }
+.input-wrapper { display: flex; align-items: center; gap: 12px; background: var(--zen-bg-warm); border-radius: 16px; padding: 6px 16px; border: 2px solid transparent; transition: all 0.4s ease; }
+.input-wrapper:focus-within { border-color: var(--zen-primary); background: white; box-shadow: 0 0 30px rgba(139,92,246,0.1); }
+.zen-input-icon { color: var(--zen-primary); font-size: 18px; flex-shrink: 0; }
+.input-wrapper input { flex: 1; background: transparent; border: none; padding: 14px 0; font-size: 15px; color: var(--zen-text); outline: none; }
+.input-wrapper input::placeholder { color: var(--zen-text-secondary); }
+
+.category-section { display: flex; flex-direction: column; gap: 10px; }
+.zen-label { display: flex; align-items: center; gap: 8px; color: var(--zen-text-secondary); font-size: 13px; font-weight: 500; }
+.zen-label svg { width: 16px; height: 16px; color: var(--zen-primary); }
+.category-options { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.category-option { position: relative; cursor: pointer; flex: 1; min-width: 70px; }
+.category-option input { display: none; }
+.category-tag { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 14px; border-radius: 12px; font-size: 12px; font-weight: 600; transition: all 0.3s ease; background: var(--zen-bg-warm); border: 2px solid var(--zen-border); }
+.category-option input:checked + .category-tag { transform: translateY(-2px); background: rgba(139,92,246,0.12); border-color: var(--zen-primary); color: var(--zen-primary-dark); box-shadow: 0 4px 15px rgba(139,92,246,0.3); }
+
+.date-section { display: flex; gap: 12px; flex-wrap: wrap; min-width: 0; }
+.date-input-group { flex: 1; min-width: 140px; overflow: hidden; }
+.date-input-group label { display: block; font-size: 11px; color: var(--zen-text-secondary); margin-bottom: 6px; font-weight: 500; }
+.date-input-group input { width: 100%; padding: 10px 12px; border: 2px solid var(--zen-border); border-radius: 12px; font-size: 14px; font-family: inherit; background: var(--zen-bg-warm); color: var(--zen-text); transition: all 0.3s ease; box-sizing: border-box; min-width: 0; overflow: hidden; }
+.date-input-group input:focus { outline: none; border-color: var(--zen-primary); background: white; }
+
+.time-select-wrapper { display: flex; align-items: center; gap: 4px; width: 100%; padding: 8px 12px; border: 2px solid var(--zen-border); border-radius: 12px; background: var(--zen-bg-warm); box-sizing: border-box; transition: all 0.3s ease; }
+.time-select-wrapper:focus-within { border-color: var(--zen-primary); background: white; }
+.time-select { flex: 1; border: none; background: transparent; font-size: 14px; font-family: inherit; color: var(--zen-text); outline: none; cursor: pointer; -webkit-appearance: none; appearance: none; text-align: center; padding: 2px 0; }
+.time-colon { font-size: 16px; font-weight: 700; color: var(--zen-text-secondary); flex-shrink: 0; }
+
+.priority-zen-section { display: flex; flex-direction: column; gap: 12px; }
+.zen-priority-options { display: flex; gap: 10px; flex-wrap: wrap; }
+.zen-priority { position: relative; cursor: pointer; flex: 1; min-width: 100px; }
+.zen-priority input { display: none; }
+.zen-tag { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 16px; border-radius: 14px; font-size: 13px; font-weight: 600; transition: all 0.4s ease; background: var(--zen-bg-warm); border: 2px solid var(--zen-border); }
+.zen-dot { width: 12px; height: 12px; border-radius: 50%; transition: all 0.3s ease; flex-shrink: 0; }
+.zen-priority.low .zen-dot { background: var(--zen-green); }
+.zen-priority.medium .zen-dot { background: var(--zen-yellow); }
+.zen-priority.high .zen-dot { background: var(--zen-red); }
+.zen-priority.low .zen-text { color: var(--zen-green-dark); }
+.zen-priority.medium .zen-text { color: var(--zen-yellow-dark); }
+.zen-priority.high .zen-text { color: var(--zen-red-dark); }
+.zen-priority input:checked + .zen-tag { transform: translateY(-2px); }
+.zen-priority.low input:checked + .zen-tag { background: rgba(16,185,129,0.12); border-color: var(--zen-green); box-shadow: 0 6px 25px rgba(16,185,129,0.25); }
+.zen-priority.medium input:checked + .zen-tag { background: rgba(251,191,36,0.12); border-color: var(--zen-yellow); box-shadow: 0 6px 25px rgba(251,191,36,0.25); }
+.zen-priority.high input:checked + .zen-tag { background: rgba(248,113,113,0.12); border-color: var(--zen-red); box-shadow: 0 6px 25px rgba(248,113,113,0.25); }
+
+.zen-add-btn { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 16px 24px; background: linear-gradient(135deg, var(--zen-primary) 0%, var(--zen-primary-light) 100%); border: none; border-radius: 16px; color: white; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.4s ease; box-shadow: 0 6px 25px rgba(139,92,246,0.3); }
+.zen-add-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(139,92,246,0.4); }
+.zen-add-btn svg { width: 18px; height: 18px; }
+
+/* STATS */
+.zen-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.zen-stat-card { background: var(--zen-card); border-radius: 18px; padding: 16px 10px; display: flex; flex-direction: column; align-items: center; gap: 8px; box-shadow: 0 4px 20px var(--zen-card-shadow); transition: all 0.4s ease; }
+.zen-stat-card:hover { transform: translateY(-4px); }
+.zen-stat-circle { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: white; }
+.zen-stat-circle.total { background: linear-gradient(135deg, var(--zen-primary) 0%, var(--zen-primary-light) 100%); }
+.zen-stat-circle.completed { background: linear-gradient(135deg, var(--zen-green) 0%, var(--zen-green-light) 100%); }
+.zen-stat-circle.pending { background: linear-gradient(135deg, var(--zen-yellow) 0%, var(--zen-yellow-light) 100%); }
+.zen-stat-circle.overdue { background: linear-gradient(135deg, var(--zen-red) 0%, var(--zen-red-light) 100%); }
+.zen-stat-info { text-align: center; }
+.zen-stat-title { display: block; font-size: 12px; font-weight: 700; color: var(--zen-text); }
+.zen-stat-subtitle { display: block; font-size: 10px; color: var(--zen-text-secondary); margin-top: 2px; }
+
+/* FILTERS */
+.filter-tabs { display: flex; gap: 6px; padding: 4px; background: var(--zen-card); border-radius: 18px; box-shadow: 0 4px 20px var(--zen-card-shadow); flex-wrap: wrap; overflow: visible; max-width: 100%; }
+.filter-tabs::-webkit-scrollbar { display: none; }
+.zen-filter-btn { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 14px; min-height: 36px; background: #f2f2f2; border: 1px solid #e5e5e5; border-radius: 100px; color: #5a6772; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.3s ease; white-space: nowrap; }
+.zen-filter-btn:hover { background: var(--zen-accent); color: var(--zen-primary); }
+.zen-filter-btn.active { color: white; border-color: #000000; font-weight: 600; }
+.zen-filter-btn.all.active { background: var(--zen-primary); }
+.zen-filter-btn.pending.active { background: var(--zen-yellow); color: var(--zen-text); border-color: #000000; }
+.zen-filter-btn.completed.active { background: var(--zen-green); }
+.zen-filter-btn.overdue.active { background: var(--zen-red); }
+
+#categoryFiltersContainer { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.category-filter-btn { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 14px; min-height: 36px; background: #f2f2f2; border: 1px solid #e5e5e5; border-radius: 100px; color: #5a6772; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.3s ease; white-space: nowrap; }
+.category-filter-btn:hover { background: var(--zen-accent); color: var(--zen-primary); }
+.category-filter-btn.active { color: #f5f5f5; border-color: #000000; border-width: 2px; font-weight: 600; background: #5b5d5f; }
+.category-filter-btn[data-category-filter="casa"].active { background: var(--cat-casa); color: white; }
+.category-filter-btn[data-category-filter="trabalho"].active { background: var(--cat-trabalho); color: white; }
+.category-filter-btn[data-category-filter="pessoal"].active { background: var(--cat-pessoal); color: white; }
+.category-filter-btn[data-category-filter="estudos"].active { background: var(--cat-estudos); color: white; }
+
+/* TASK LIST */
+.zen-task-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+.zen-task-item { background: var(--zen-card); border-radius: 18px; padding: 18px; border: 1px solid var(--zen-border); display: flex; align-items: flex-start; gap: 14px; transition: all 0.4s ease; animation: zenSlideIn 0.5s ease; position: relative; overflow: hidden; }
+@keyframes zenSlideIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+.zen-task-item:hover { border-color: var(--zen-primary); box-shadow: 0 6px 25px var(--zen-card-shadow); }
+.zen-task-item.completed { opacity: 0.6; background: var(--zen-bg-warm); }
+.zen-task-item.removing { animation: zenSlideOut 0.5s ease forwards; }
+@keyframes zenSlideOut { to { opacity: 0; transform: translateX(80px) scale(0.95); } }
+.zen-task-item.overdue { border-left: 4px solid var(--zen-red); }
+.zen-task-item.checking { animation: checkPulse 0.6s ease; }
+@keyframes checkPulse { 0% { transform: scale(1); } 30% { transform: scale(1.02); background: rgba(16,185,129,0.1); } 60% { transform: scale(0.98); } 100% { transform: scale(1); } }
+
+/* CHECKBOX */
+.zen-checkbox { position: relative; width: 26px; height: 26px; flex-shrink: 0; }
+.zen-checkbox input { position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; z-index: 1; }
+.zen-checkbox .zen-checkmark { position: absolute; top: 0; left: 0; width: 26px; height: 26px; border: 2px solid var(--zen-border); border-radius: 50%; transition: all 0.4s ease; display: flex; align-items: center; justify-content: center; background: white; }
+.zen-checkbox input:checked + .zen-checkmark { background: linear-gradient(135deg, var(--zen-green) 0%, var(--zen-green-light) 100%); border-color: var(--zen-green); animation: checkBounce 0.5s ease; }
+@keyframes checkBounce { 0% { transform: scale(1); } 30% { transform: scale(1.3); } 50% { transform: scale(0.9); } 70% { transform: scale(1.1); } 100% { transform: scale(1); } }
+.zen-checkbox .zen-checkmark svg { width: 14px; height: 14px; color: white; opacity: 0; transform: scale(0); transition: all 0.3s ease; }
+.zen-checkbox input:checked + .zen-checkmark svg { opacity: 1; transform: scale(1); }
+
+/* TASK CONTENT */
+.zen-task-content { flex: 1; min-width: 0; }
+.zen-task-text { font-size: 15px; font-weight: 500; line-height: 1.5; word-break: break-word; transition: all 0.4s ease; margin-bottom: 10px; }
+.zen-task-item.completed .zen-task-text { text-decoration: line-through; color: var(--zen-text-secondary); }
+.zen-task-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.zen-task-date { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--zen-text-secondary); }
+.zen-task-date svg { width: 11px; height: 11px; }
+.zen-task-date.overdue { color: var(--zen-red); font-weight: 600; }
+.zen-category-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 12px; font-size: 10px; font-weight: 600; }
+.zen-priority-badge { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 15px; font-size: 11px; font-weight: 600; }
+.zen-priority-badge.baixa { background: rgba(16,185,129,0.12); color: var(--zen-green-dark); }
+.zen-priority-badge.media { background: rgba(251,191,36,0.12); color: var(--zen-yellow-dark); }
+.zen-priority-badge.alta { background: rgba(248,113,113,0.12); color: var(--zen-red-dark); }
+
+/* TASK ACTIONS */
+.zen-task-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.zen-task-btn { width: 38px; height: 38px; border: none; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; }
+.zen-task-btn svg { width: 15px; height: 15px; }
+.zen-edit-btn { background: var(--zen-accent); color: var(--zen-primary); }
+.zen-edit-btn:hover { background: var(--zen-primary); color: white; }
+.zen-delete-btn { background: rgba(248,113,113,0.12); color: var(--zen-red); }
+.zen-delete-btn:hover { background: var(--zen-red); color: white; }
+
+/* EMPTY STATE */
+.zen-empty-state { display: none; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; text-align: center; background: var(--zen-card); border-radius: 24px; box-shadow: 0 8px 40px var(--zen-card-shadow); }
+.zen-empty-state.show { display: flex; }
+.zen-empty-mandala { position: relative; width: 100px; height: 100px; margin-bottom: 20px; }
+.mandala-ring { position: absolute; border-radius: 50%; border: 2px solid var(--zen-accent); top: 50%; left: 50%; transform: translate(-50%,-50%); animation: zenRotate 20s linear infinite; }
+.mandala-ring.r1 { width: 100px; height: 100px; border-color: rgba(139,92,246,0.2); }
+.mandala-ring.r2 { width: 70px; height: 70px; border-color: rgba(16,185,129,0.2); animation-direction: reverse; animation-duration: 15s; }
+.mandala-ring.r3 { width: 40px; height: 40px; border-color: rgba(251,191,36,0.2); animation-duration: 10s; }
+@keyframes zenRotate { from { transform: translate(-50%,-50%) rotate(0deg); } to { transform: translate(-50%,-50%) rotate(360deg); } }
+.mandala-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 40px; height: 40px; background: linear-gradient(135deg, var(--zen-primary) 0%, var(--zen-primary-light) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.mandala-center svg { width: 18px; height: 18px; color: white; }
+.zen-empty-state h3 { font-size: 18px; font-weight: 700; margin-bottom: 6px; color: var(--zen-text); }
+.zen-empty-state p { color: var(--zen-text-secondary); font-size: 13px; }
+
+/* FOOTER */
+.zen-footer { text-align: center; padding: 20px 16px; background: var(--zen-card); border-radius: 20px; box-shadow: 0 4px 20px var(--zen-card-shadow); }
+.zen-footer-content { display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--zen-text-secondary); font-size: 12px; }
+.zen-footer-content svg { width: 12px; height: 12px; color: var(--zen-primary); opacity: 0.5; }
+
+/* TOAST */
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--zen-card); padding: 16px 24px; border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 12px; z-index: 2000; opacity: 0; transition: all 0.4s ease; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast-icon { font-size: 24px; }
+.toast-message { font-size: 14px; font-weight: 600; }
+
+/* EDIT MODAL */
+.edit-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; padding: 20px; }
+.edit-modal.show { display: flex; }
+.edit-modal-content { background: var(--zen-card); border-radius: 24px; padding: 24px; max-width: 420px; width: 100%; max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column; gap: 18px; }
+.edit-modal-header { display: flex; align-items: center; justify-content: space-between; }
+.edit-modal-header h2 { font-size: 18px; font-weight: 700; color: var(--zen-text); }
+.edit-field label { display: block; font-size: 11px; color: var(--zen-text-secondary); font-weight: 600; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+.edit-field input[type="text"], .edit-field input[type="date"] { width: 100%; padding: 12px 14px; border: 2px solid var(--zen-border); border-radius: 12px; font-size: 15px; font-family: inherit; background: var(--zen-bg-warm); color: var(--zen-text); box-sizing: border-box; outline: none; transition: border-color 0.3s; }
+.edit-field input[type="text"]:focus, .edit-field input[type="date"]:focus { border-color: var(--zen-primary); background: white; }
+.edit-time-wrapper { display: flex; align-items: center; gap: 4px; width: 100%; padding: 10px 14px; border: 2px solid var(--zen-border); border-radius: 12px; background: var(--zen-bg-warm); box-sizing: border-box; transition: border-color 0.3s; }
+.edit-time-wrapper:focus-within { border-color: var(--zen-primary); background: white; }
+.edit-time-select { flex: 1; border: none; background: transparent; font-size: 15px; font-family: inherit; color: var(--zen-text); outline: none; -webkit-appearance: none; appearance: none; text-align: center; cursor: pointer; }
+.edit-priority-options { display: flex; gap: 8px; }
+.edit-priority-options label { flex: 1; cursor: pointer; }
+.edit-priority-options input { display: none; }
+.edit-priority-tag { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px 10px; border-radius: 12px; font-size: 13px; font-weight: 600; border: 2px solid var(--zen-border); background: var(--zen-bg-warm); transition: all 0.3s; }
+.edit-priority-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.ep-low .edit-priority-dot { background: var(--zen-green); }
+.ep-medium .edit-priority-dot { background: var(--zen-yellow); }
+.ep-high .edit-priority-dot { background: var(--zen-red); }
+.ep-low input:checked + .edit-priority-tag { background: rgba(16,185,129,0.12); border-color: var(--zen-green); }
+.ep-medium input:checked + .edit-priority-tag { background: rgba(251,191,36,0.12); border-color: var(--zen-yellow); }
+.ep-high input:checked + .edit-priority-tag { background: rgba(248,113,113,0.12); border-color: var(--zen-red); }
+.edit-save-btn { padding: 14px; background: linear-gradient(135deg, var(--zen-primary) 0%, var(--zen-primary-light) 100%); color: white; border: none; border-radius: 14px; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 20px rgba(139,92,246,0.3); }
+
+/* LOGIN SCREEN */
+#loginScreen { display: none; position: fixed; inset: 0; background: var(--zen-bg); z-index: 9999; align-items: center; justify-content: center; flex-direction: column; gap: 24px; background-image: radial-gradient(circle at 10% 20%, rgba(16,185,129,0.07) 0%, transparent 40%), radial-gradient(circle at 90% 80%, rgba(139,92,246,0.07) 0%, transparent 40%); }
+#loginScreen.show { display: flex; }
+.login-card { background: white; border-radius: 28px; padding: 40px 36px; max-width: 380px; width: 90%; text-align: center; box-shadow: 0 20px 60px rgba(139,92,246,0.12); display: flex; flex-direction: column; align-items: center; gap: 20px; }
+.login-logo { width: 72px; height: 72px; background: linear-gradient(135deg, var(--zen-primary) 0%, var(--zen-primary-light) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(139,92,246,0.35); animation: zenPulse 4s ease-in-out infinite; }
+.login-logo svg { width: 36px; height: 36px; color: white; }
+.login-card h1 { font-size: 26px; font-weight: 800; color: var(--zen-text); }
+.login-card h1 span { background: linear-gradient(135deg, var(--zen-primary) 0%, var(--zen-primary-light) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.login-card p { color: var(--zen-text-secondary); font-size: 14px; line-height: 1.6; }
+.google-login-btn { display: flex; align-items: center; gap: 12px; padding: 14px 24px; background: white; border: 2px solid var(--zen-border); border-radius: 14px; font-size: 15px; font-weight: 600; color: var(--zen-text); cursor: pointer; transition: all 0.3s ease; width: 100%; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+.google-login-btn:hover { border-color: var(--zen-primary); box-shadow: 0 6px 20px rgba(139,92,246,0.15); transform: translateY(-2px); }
+.google-login-btn svg { width: 22px; height: 22px; flex-shrink: 0; }
+.skip-login-btn { background: none; border: none; color: var(--zen-text-secondary); font-size: 13px; cursor: pointer; padding: 8px; border-radius: 10px; transition: all 0.2s; text-decoration: underline; text-underline-offset: 3px; }
+.skip-login-btn:hover { color: var(--zen-primary); }
+
+/* SHAKE ANIMATION */
+@keyframes zenShake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
+
+/* RESPONSIVE */
+@media (max-width: 480px) {
+    body { padding: 16px 10px; }
+    .app-header { padding: 24px 18px; border-radius: 20px; }
+    .zen-icon { width: 48px; height: 48px; font-size: 20px; }
+    .header-title h1 { font-size: 22px; }
+    .streak-container { flex-direction: column; gap: 12px; }
+    .streak-info { text-align: center; }
+    .streak-fire { width: 50px; height: 50px; }
+    .streak-fire-icon { font-size: 32px; }
+    .streak-count { font-size: 28px; }
+    .input-zen-card { padding: 20px; border-radius: 20px; }
+    .category-options, .zen-priority-options { flex-direction: column; }
+    .zen-stats { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .zen-task-item { padding: 16px; flex-wrap: wrap; }
+    .zen-task-content { width: calc(100% - 44px); }
+    .zen-task-actions { width: 100%; justify-content: flex-end; margin-top: 8px; }
+    .filter-tabs { flex-wrap: wrap; gap: 6px; padding: 8px; border-radius: 16px; }
+    .zen-filter-btn, .category-filter-btn { flex: 1 1 auto; min-width: calc(50% - 6px); max-width: 100%; padding: 10px 12px; font-size: 11px; justify-content: flex-start; gap: 6px; }
+    #categoryFiltersContainer { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; }
+}
+
+@media (hover: none) {
+    .zen-add-btn:active, .zen-task-btn:active, .zen-filter-btn:active { transform: scale(0.96); }
+}
+    </style>
+
     <script>
     (function() {
         'use strict';
 
-        // Variavel para controlar o contexto de audio
+        // ==========================================
+        //  VARIÁVEIS GLOBAIS
+        // ==========================================
         var audioContext = null;
+        var categoryColors = ['#ec4899', '#3b82f6', '#8b5cf6', '#f59e0b', '#10b981', '#ef4444', '#06b6d4', '#84cc16', '#f97316', '#6366f1', '#14b8a6', '#a855f7'];
 
-        // Cores predefinidas para categorias
-        var categoryColors = [
-            '#ec4899', '#3b82f6', '#8b5cf6', '#f59e0b',
-            '#10b981', '#ef4444', '#06b6d4', '#84cc16',
-            '#f97316', '#6366f1', '#14b8a6', '#a855f7'
+        // Estado da aplicação
+        var tarefas = JSON.parse(localStorage.getItem('zentask_tarefas')) || [];
+        var categorias = JSON.parse(localStorage.getItem('zentask_categorias')) || [
+            { id: 'casa', nome: 'Casa', cor: '#ec4899' },
+            { id: 'trabalho', nome: 'Trabalho', cor: '#3b82f6' },
+            { id: 'pessoal', nome: 'Pessoal', cor: '#8b5cf6' },
+            { id: 'estudos', nome: 'Estudos', cor: '#f59e0b' }
         ];
+        var streak = JSON.parse(localStorage.getItem('zentask_streak')) || { count: 0, lastCompletionDate: null };
+        var currentFilter = 'all';
+        var selectedCategoryId = 'casa';
+        var editingId = null;
 
-        // Função para inicializar o contexto de audio
-        function initAudioContext() {
-            if (!audioContext) {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            return audioContext;
-        }
+        // Firebase
+        var _fb = null;
+        var firebaseConfigured = true;
+        var currentUser = null;
+        var _fbListenersActive = false;
+        var _ignoreNextUpdate = false;
+        var _syncVersion = 0; // Controle de versão para sincronização
 
-        // Função para tocar sons usando Web Audio API
-        function playSound(type) {
-            try {
-                var ctx = initAudioContext();
-                if (ctx.state === 'suspended') {
-                    ctx.resume();
-                }
+        // Push Notification
+        var pushSubscription = null;
 
-                var oscillator = ctx.createOscillator();
-                var gainNode = ctx.createGain();
-
-                oscillator.connect(gainNode);
-                gainNode.connect(ctx.destination);
-
-                switch(type) {
-                    case 'add':
-                        oscillator.frequency.setValueAtTime(523.25, ctx.currentTime);
-                        oscillator.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1);
-                        gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
-                        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-                        oscillator.start(ctx.currentTime);
-                        oscillator.stop(ctx.currentTime + 0.3);
-                        break;
-                    case 'check':
-                        oscillator.frequency.setValueAtTime(392, ctx.currentTime);
-                        oscillator.frequency.setValueAtTime(523.25, ctx.currentTime + 0.1);
-                        oscillator.frequency.setValueAtTime(659.25, ctx.currentTime + 0.2);
-                        oscillator.frequency.setValueAtTime(783.99, ctx.currentTime + 0.3);
-                        gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
-                        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
-                        oscillator.start(ctx.currentTime);
-                        oscillator.stop(ctx.currentTime + 0.5);
-                        break;
-                    case 'streak':
-                        oscillator.frequency.setValueAtTime(523.25, ctx.currentTime);
-                        oscillator.frequency.setValueAtTime(659.25, ctx.currentTime + 0.15);
-                        oscillator.frequency.setValueAtTime(783.99, ctx.currentTime + 0.3);
-                        oscillator.frequency.setValueAtTime(1046.50, ctx.currentTime + 0.45);
-                        gainNode.gain.setValueAtTime(0.4, ctx.currentTime);
-                        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.7);
-                        oscillator.start(ctx.currentTime);
-                        oscillator.stop(ctx.currentTime + 0.7);
-                        break;
-                    case 'delete':
-                        oscillator.frequency.setValueAtTime(440, ctx.currentTime);
-                        oscillator.frequency.exponentialRampToValueAtTime(110, ctx.currentTime + 0.3);
-                        gainNode.gain.setValueAtTime(0.2, ctx.currentTime);
-                        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-                        oscillator.start(ctx.currentTime);
-                        oscillator.stop(ctx.currentTime + 0.3);
-                        break;
-                }
-            } catch(e) {
-                // Falha silenciosa se audio não for suportado
-            }
-        }
-
-        // Elementos do DOM
+        // ==========================================
+        //  ELEMENTOS DO DOM
+        // ==========================================
         var input = document.getElementById('tarefaInput');
         var btn = document.getElementById('adicionarBtn');
         var lista = document.getElementById('listaTarefas');
         var emptyState = document.getElementById('emptyState');
         var dataLimiteInput = document.getElementById('dataLimite');
         var horaHHSelect = document.getElementById('horaHH');
-        var horaMМSelect = document.getElementById('horaMM');
-
-        // Preencher selects de hora e minuto
-        (function() {
-            for (var h = 0; h < 24; h++) {
-                var opt = document.createElement('option');
-                opt.value = String(h).padStart(2, '0');
-                opt.textContent = String(h).padStart(2, '0');
-                horaHHSelect.appendChild(opt);
-            }
-            for (var m = 0; m < 60; m++) {
-                var opt2 = document.createElement('option');
-                opt2.value = String(m).padStart(2, '0');
-                opt2.textContent = String(m).padStart(2, '0');
-                horaMМSelect.appendChild(opt2);
-            }
-        })();
-
-        function getHoraLimiteValue() {
-            return horaHHSelect.value + ':' + horaMМSelect.value;
-        }
-        function setHoraLimiteValue(val) {
-            if (!val) { horaHHSelect.value = '23'; horaMМSelect.value = '59'; return; }
-            var parts = val.split(':');
-            horaHHSelect.value = parts[0] || '23';
-            horaMМSelect.value = parts[1] || '59';
-        }
-
-        // Elementos de Estatísticas
+        var horaMMSelect = document.getElementById('horaMM');
         var totalTasksEl = document.getElementById('totalTasks');
         var completedTasksEl = document.getElementById('completedTasks');
         var pendingTasksEl = document.getElementById('pendingTasks');
         var overdueTasksEl = document.getElementById('overdueTasks');
-
-        // Elementos de Streak
         var streakCountEl = document.getElementById('streakCount');
         var streakStatusEl = document.getElementById('streakStatus');
         var streakFireEl = document.getElementById('streakFire');
         var streakIconEl = document.getElementById('streakIcon');
         var streakParticlesEl = document.getElementById('streakParticles');
-
-        // Elementos de Filtro
         var filterBtns = document.querySelectorAll('.zen-filter-btn');
-
-        // Elementos de Categoria
         var categoryOptionsEl = document.getElementById('categoryOptions');
         var categoryListEl = document.getElementById('categoryList');
         var categoryModalEl = document.getElementById('categoryModal');
@@ -2386,123 +936,200 @@ input[type="time"] {
         var closeModalBtnEl = document.getElementById('closeModalBtn');
         var addCategoryBtnEl = document.getElementById('addCategoryBtn');
         var newCategoryNameEl = document.getElementById('newCategoryName');
-
-        // Elementos de Prioridade
         var priorityOptions = document.querySelectorAll('input[name="prioridade"]');
+        var editModalEl = document.getElementById('editModal');
+        var editTextoEl = document.getElementById('editTexto');
+        var editDataEl = document.getElementById('editData');
+        var editHHEl = document.getElementById('editHH');
+        var editMMEl = document.getElementById('editMM');
+        var editSaveEl = document.getElementById('editSaveBtn');
+        var closeEditEl = document.getElementById('closeEditModal');
+        var editPriorityRadios = document.querySelectorAll('input[name="editPrioridade"]');
 
-        // Estado da aplicação
-        var tarefas = JSON.parse(localStorage.getItem('tarefasZenUltimate')) || [];
-        var categorias = JSON.parse(localStorage.getItem('categoriasZenUltimate')) || [
-            { id: 'casa', nome: 'Casa', cor: '#ec4899' },
-            { id: 'trabalho', nome: 'Trabalho', cor: '#3b82f6' },
-            { id: 'pessoal', nome: 'Pessoal', cor: '#8b5cf6' },
-            { id: 'estudos', nome: 'Estudos', cor: '#f59e0b' }
-        ];
-        var streak = JSON.parse(localStorage.getItem('streakZenUltimate')) || {
-            count: 0,
-            lastCompletionDate: null
-        };
-        var currentFilter = 'all';
-        var selectedCategoryId = 'casa';
+        // ==========================================
+        //  INICIALIZAÇÃO
+        // ==========================================
+        (function init() {
+            // Preencher selects de hora
+            for (var h = 0; h < 24; h++) {
+                var opt = document.createElement('option');
+                opt.value = String(h).padStart(2, '0');
+                opt.textContent = String(h).padStart(2, '0');
+                horaHHSelect.appendChild(opt);
+                var opt2 = document.createElement('option');
+                opt2.value = String(h).padStart(2, '0');
+                opt2.textContent = String(h).padStart(2, '0');
+                editHHEl.appendChild(opt2);
+            }
+            for (var m = 0; m < 60; m++) {
+                var opt = document.createElement('option');
+                opt.value = String(m).padStart(2, '0');
+                opt.textContent = String(m).padStart(2, '0');
+                horaMMSelect.appendChild(opt);
+                var opt2 = document.createElement('option');
+                opt2.value = String(m).padStart(2, '0');
+                opt2.textContent = String(m).padStart(2, '0');
+                editMMEl.appendChild(opt2);
+            }
 
-        // Inicializar data mínima como hoje
-        var today = new Date().toISOString().split('T')[0];
-        dataLimiteInput.value = today;
-        setHoraLimiteValue('23:59');
+            // Data mínima
+            var today = new Date().toISOString().split('T')[0];
+            dataLimiteInput.value = today;
+            setHoraLimiteValue('23:59');
 
-        // Inicializar aplicação
-        inicializar();
-        setupEventListeners();
-
-        function inicializar() {
+            // Renderizar
             renderizarCategorias();
             renderizarCategoriasLista();
             renderizarCategoryFilters();
             renderizar();
             atualizarStreak();
 
-            setInterval(function() { verificarTarefasAtrasadas(); }, 60000);
+            // Service Worker
+            registerServiceWorker();
 
-            // ── PWA: Service Worker para offline real ──────────────
-            // Substitua o registro do Service Worker antigo por este:
-            <!-- Service Worker com Cache-Control dinâmico -->
-      
+            // PWA Install
+            setupPWAInstall();
+
+            // Firebase Auth
+            setupFirebaseAuth();
+
+            // Event Listeners
+            setupEventListeners();
+
+            // Push Notifications
+            setupPushNotifications();
+
+            // Verificações periódicas
+            setInterval(verificarTarefasAtrasadas, 60000);
+            setInterval(verificarPushNotifications, 60000);
+            setInterval(limparNotificacoesAntigas, 3600000);
+        })();
+
+        // ==========================================
+        //  SERVICE WORKER - OFFLINE PRIMEIRO
+        // ==========================================
+        function registerServiceWorker() {
             if ('serviceWorker' in navigator) {
-                window.addEventListener('load', function() {
-                    var swCode = `
-                        const CACHE_NAME = 'zentask-v5-cache-' + Date.now();
-                        const CACHE_CLEANUP_TIME = 24 * 60 * 60 * 1000; // 24 horas
-                        
-                        self.addEventListener('install', e => {
-                            e.waitUntil(
-                                caches.open(CACHE_NAME).then(c => {
-                                    c.addAll([location.pathname]).catch(() => {});
-                                    return self.skipWaiting();
-                                })
-                            );
-                        });
+                var swCode = `
+                    const CACHE_NAME = 'zentask-v6-' + self.registration.scope;
+                    const STATIC_ASSETS = [
+                        '/',
+                        '/index.html',
+                        '/ZenTask-Firebase-PWA.html'
+                    ];
 
-                        self.addEventListener('activate', e => {
-                            e.waitUntil(
-                                caches.keys().then(ks => {
-                                    return Promise.all(
-                                        ks.map(k => {
-                                            // Remove caches com mais de 24 horas
-                                            if (k !== CACHE_NAME && k.includes('zentask')) {
-                                                return caches.delete(k);
-                                            }
-                                        })
-                                    );
-                                }).then(() => self.clients.claim())
-                            );
-                        });
+                    self.addEventListener('install', e => {
+                        e.waitUntil(
+                            caches.open(CACHE_NAME).then(cache => {
+                                return cache.addAll(STATIC_ASSETS).catch(() => {});
+                            }).then(() => self.skipWaiting())
+                        );
+                    });
 
-                        self.addEventListener('fetch', e => {
-                            if (e.request.method !== 'GET') return;
-                            
-                            // Para HTML: Network-First (tenta rede, depois cache)
-                            if (e.request.url.endsWith('.html') || e.request.url === location.origin + '/') {
-                                e.respondWith(
-                                    fetch(e.request).then(res => {
-                                        let resClone = res.clone();
-                                        caches.open(CACHE_NAME).then(c => c.put(e.request, resClone));
-                                        return res;
-                                    }).catch(() => caches.match(e.request))
+                    self.addEventListener('activate', e => {
+                        e.waitUntil(
+                            caches.keys().then(keys => {
+                                return Promise.all(
+                                    keys.filter(k => k !== CACHE_NAME && k.includes('zentask'))
+                                        .map(k => caches.delete(k))
                                 );
-                            } else {
-                                // Para JS/CSS/Assets: Cache-First
-                                e.respondWith(
-                                    caches.match(e.request).then(res => res || fetch(e.request).then(fetchRes => {
-                                        let resClone = fetchRes.clone();
-                                        caches.open(CACHE_NAME).then(c => c.put(e.request, resClone));
-                                        return fetchRes;
-                                    }))
-                                );
-                            }
+                            }).then(() => self.clients.claim())
+                        );
+                    });
+
+                    self.addEventListener('fetch', e => {
+                        if (e.request.method !== 'GET') return;
+
+                        // API Firebase - Network First
+                        if (e.request.url.includes('firebaseio.com') || e.request.url.includes('firebase')) {
+                            e.respondWith(
+                                fetch(e.request).catch(() => new Response('Offline', { status: 503 }))
+                            );
+                            return;
+                        }
+
+                        // HTML - Network First com fallback
+                        if (e.request.headers.get('accept')?.includes('text/html')) {
+                            e.respondWith(
+                                fetch(e.request).then(res => {
+                                    var resClone = res.clone();
+                                    caches.open(CACHE_NAME).then(c => c.put(e.request, resClone));
+                                    return res;
+                                }).catch(() => caches.match(e.request).then(r => r || caches.match('/')))
+                            );
+                            return;
+                        }
+
+                        // Assets - Cache First
+                        e.respondWith(
+                            caches.match(e.request).then(r => r || fetch(e.request).then(res => {
+                                if (res.ok) {
+                                    var clone = res.clone();
+                                    caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
+                                }
+                                return res;
+                            }))
+                        );
+                    });
+
+                    // Push Notification Handler
+                    self.addEventListener('push', e => {
+                        if (!e.data) return;
+                        var data = e.data.json();
+                        self.registration.showNotification(data.title, {
+                            body: data.body,
+                            icon: '/icon-192.png',
+                            badge: '/badge.png',
+                            tag: data.tag || 'zentask-notif',
+                            requireInteraction: data.priority === 'high'
                         });
-                    `;
-                    
-                    var blob = new Blob([swCode], { type: 'application/javascript' });
-                    navigator.serviceWorker.register(URL.createObjectURL(blob))
-                        .then(() => console.log('SW registrado'))
-                        .catch(err => console.warn('SW erro:', err));
-                });
+                    });
+
+                    self.addEventListener('notificationclick', e => {
+                        e.notification.close();
+                        e.waitUntil(
+                            clients.openWindow('/')
+                        );
+                    });
+                `;
+
+                var blob = new Blob([swCode], { type: 'application/javascript' });
+                navigator.serviceWorker.register(URL.createObjectURL(blob))
+                    .then(() => console.log('SW registered'))
+                    .catch(err => console.warn('SW error:', err));
             }
+        }
 
-            // ── PWA: botão de instalação (Android + iOS) ──────────
+        // ==========================================
+        //  PWA INSTALL - MELHORADO
+        // ==========================================
+        function setupPWAInstall() {
             var pwaBtn = document.getElementById('pwaInstallBtn');
+            var pwaText = document.getElementById('pwaInstallText');
+            var pwaSection = document.getElementById('pwaInstallSection');
+            var iosCard = document.getElementById('iosInstallCard') || createIOSCard();
             var deferredPrompt = null;
             var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
             var isAndroid = /android/i.test(navigator.userAgent);
             var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 
-            // Mostra botão no iOS (não tem beforeinstallprompt)
-            if (isIOS && !isStandalone) {
-                pwaBtn.classList.add('show');
+            // Mostrar botão ou card baseado na plataforma
+            if (isStandalone) {
+                pwaSection.style.display = 'none';
+                return;
             }
-            // No Android Samsung, mostra botão antecipadamente
-            if (isAndroid && !isStandalone) {
+
+            if (isIOS) {
+                pwaSection.style.display = 'none';
+                // Verificar se já mostrou o card
+                if (!localStorage.getItem('zentask_ios_card_shown')) {
+                    setTimeout(() => {
+                        iosCard.classList.add('show');
+                    }, 2000);
+                }
+            } else if (isAndroid) {
                 pwaBtn.classList.add('show');
+                pwaText.textContent = 'Instalar App';
             }
 
             window.addEventListener('beforeinstallprompt', function(e) {
@@ -2514,253 +1141,309 @@ input[type="time"] {
             pwaBtn.addEventListener('click', function() {
                 if (deferredPrompt) {
                     deferredPrompt.prompt();
-                    deferredPrompt.userChoice.then(function() {
+                    deferredPrompt.userChoice.then(function(choice) {
+                        if (choice.outcome === 'accepted') {
+                            mostrarToast('App instalado com sucesso!', 'success');
+                        }
                         deferredPrompt = null;
-                        pwaBtn.classList.remove('show');
                     });
-                } else if (isIOS && !isStandalone) {
-                    alert('Para instalar no iPhone/iPad:\n\n1. Toque no ícone ⬆️ (compartilhar) na barra do Safari\n2. Selecione "Adicionar à Tela de Início"\n3. Toque em "Adicionar"');
-                } else if (isAndroid) {
-                    alert('Para instalar no Android:\n\n1. Toque nos 3 pontos ⋮ no canto superior do Chrome\n2. Selecione "Adicionar à tela inicial"\n3. Confirme tocando em "Adicionar"');
                 }
             });
 
             window.addEventListener('appinstalled', function() {
                 pwaBtn.classList.remove('show');
+                mostrarToast('ZenTask instalado!', 'success');
             });
+        }
 
-            // ── Autenticação Firebase ──────────────────────────────
+        function createIOSCard() {
+            var card = document.createElement('div');
+            card.className = 'ios-install-card';
+            card.id = 'iosInstallCard';
+            card.innerHTML = `
+                <h4>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                        <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+                        <line x1="12" y1="18" x2="12" y2="18"/>
+                    </svg>
+                    Instalar no iPhone/iPad
+                </h4>
+                <ol>
+                    <li>Toque no ícone <strong>Compartilhar</strong> <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="display:inline"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg> na barra do Safari</li>
+                    <li>Role para baixo e selecione <strong>"Adicionar à Tela de Início"</strong></li>
+                    <li>Toque em <strong>"Adicionar"</strong> no canto superior direito</li>
+                </ol>
+                <button class="close-ios-card">Entendi</button>
+            `;
+            card.querySelector('.close-ios-card').addEventListener('click', function() {
+                card.classList.remove('show');
+                localStorage.setItem('zentask_ios_card_shown', 'true');
+            });
+            document.querySelector('.app-header').appendChild(card);
+            return card;
+        }
+
+        // ==========================================
+        //  FIREBASE AUTH
+        // ==========================================
+        function setupFirebaseAuth() {
             var fbWait = 0;
-            function tryInitAuth() {
-                var fb = getFirebase();
-                if (!fb) {
+            function tryInit() {
+                _fb = window._firebase;
+                if (!_fb) {
                     fbWait++;
-                    if (fbWait < 30) { setTimeout(tryInitAuth, 300); }
-                    return;
-                }
-                if (!firebaseConfigured) {
-                    setSyncStatus('no-config', '⚙️ Firebase não configurado');
+                    if (fbWait < 30) { setTimeout(tryInit, 300); }
                     return;
                 }
 
-                // Botão de login Google (popup funciona em GitHub Pages)
+                // Login Google
                 document.getElementById('googleLoginBtn').addEventListener('click', function() {
-                    fb.signInWithPopup(fb.auth, fb.provider).catch(function(e) {
+                    _fb.signInWithPopup(_fb.auth, _fb.provider).catch(function(e) {
                         if (e.code === 'auth/unauthorized-domain') {
-                            alert('⚠️ Domínio não autorizado no Firebase.\n\nAcesse:\nFirebase → Authentication → Settings → Domínios autorizados\n\nE adicione: ' + location.hostname);
-                        } else if (e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request') {
-                            alert('Erro ao fazer login: ' + e.message);
+                            alert('Adicione "' + location.hostname + '" nos domínios autorizados do Firebase.');
                         }
                     });
                 });
 
-                // Botão continuar sem login
+                // Skip login
                 document.getElementById('skipLoginBtn').addEventListener('click', function() {
                     document.getElementById('loginScreen').classList.remove('show');
-                    setSyncStatus('offline', '📴 Modo offline');
-                    document.getElementById('loginPromptBtn').classList.remove('hidden');
+                    setSyncStatus('offline', 'Modo offline');
+                    document.getElementById('loginPromptBtn').classList.add('show');
                 });
 
-                // Botão entrar para sincronizar (modo offline)
+                // Login prompt
                 document.getElementById('loginPromptBtn').addEventListener('click', function() {
-                    fb.signInWithPopup(fb.auth, fb.provider).catch(function(e) {
-                        if (e.code === 'auth/unauthorized-domain') {
-                            alert('⚠️ Adicione "' + location.hostname + '" nos domínios autorizados do Firebase:\nAuthentication → Settings → Domínios autorizados');
-                        } else if (e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request') {
+                    _fb.signInWithPopup(_fb.auth, _fb.provider).catch(function(e) {
+                        if (e.code !== 'auth/popup-closed-by-user') {
                             alert('Erro: ' + e.message);
                         }
                     });
                 });
 
-                // Botão de logout
+                // Logout
                 document.getElementById('logoutBtn').addEventListener('click', function() {
-                    fb.signOut(fb.auth);
+                    _fb.signOut(_fb.auth);
                 });
 
-                // Processa resultado do redirect (mobile após login Google)
-                fb.getRedirectResult(fb.auth).then(function(result) {
-                    // resultado já tratado pelo onAuthStateChanged
-                }).catch(function(e) {
-                    if (e.code === 'auth/unauthorized-domain') {
-                        alert('Adicione "' + location.hostname + '" nos domínios autorizados:\nFirebase → Authentication → Settings → Domínios autorizados');
-                    }
-                });
-
-                // Estado de autenticação
-                fb.onAuthStateChanged(fb.auth, function(user) {
+                // Auth state
+                _fb.onAuthStateChanged(_fb.auth, function(user) {
                     var loginScreen = document.getElementById('loginScreen');
                     var userInfo = document.getElementById('userInfo');
-                    var userAvatar = document.getElementById('userAvatar');
-                    var userNameEl = document.getElementById('userName');
 
                     if (user) {
                         currentUser = user;
                         loginScreen.classList.remove('show');
                         userInfo.classList.add('show');
-                        userAvatar.src = user.photoURL || '';
-                        userNameEl.textContent = user.displayName ? user.displayName.split(' ')[0] : user.email;
-                        document.getElementById('loginPromptBtn').classList.add('hidden');
-                        setupFirebaseListeners(fb);
+                        document.getElementById('userAvatar').src = user.photoURL || '';
+                        document.getElementById('userName').textContent = user.displayName ? user.displayName.split(' ')[0] : user.email;
+                        document.getElementById('loginPromptBtn').classList.remove('show');
+                        setupFirebaseListeners();
                     } else {
                         currentUser = null;
                         _fbListenersActive = false;
                         loginScreen.classList.add('show');
                         userInfo.classList.remove('show');
-                        setSyncStatus('connecting', 'Faça login para sincronizar');
+                        setSyncStatus('offline', 'Faça login para sincronizar');
+                    }
+                });
+
+                // Redirect result
+                _fb.getRedirectResult(_fb.auth).catch(function(e) {
+                    if (e.code === 'auth/unauthorized-domain') {
+                        alert('Adicione "' + location.hostname + '" nos domínios autorizados do Firebase.');
                     }
                 });
             }
-            setTimeout(tryInitAuth, 400);
+            setTimeout(tryInit, 400);
         }
 
-        // ── Listeners em tempo real do Firebase ───────────────────────
-        var _fbListenersActive = false;
-        var _ignoreNextUpdate = false; // evita loop de escrita→leitura
-
-        function setupFirebaseListeners(fb) {
-            if (_fbListenersActive) return;
+        // ==========================================
+        //  FIREBASE LISTENERS - CORRIGIDO
+        // ==========================================
+        function setupFirebaseListeners() {
+            if (_fbListenersActive || !currentUser) return;
             _fbListenersActive = true;
 
             setSyncStatus('connecting', 'Sincronizando...');
 
-            fb.onValue(fb.ref(fb.db, '.info/connected'), function(snap) {
+            // Connection status
+            _fb.onValue(_fb.ref(_fb.db, '.info/connected'), function(snap) {
                 if (snap.val() === true) {
-                    setSyncStatus('online', '☁️ Sincronizado');
+                    setSyncStatus('online', 'Sincronizado');
                 } else {
-                    setSyncStatus('offline', '📴 Offline (dados salvos localmente)');
+                    setSyncStatus('offline', 'Offline (dados salvos localmente)');
                 }
             });
 
-            fb.onValue(fb.ref(fb.db, userPath('tarefas')), function(snap) {
-                if (_ignoreNextUpdate) { _ignoreNextUpdate = false; return; }
+            // Tarefas com controle de versão
+            _fb.onValue(_fb.ref(_fb.db, userPath('tarefas')), function(snap) {
+                if (_ignoreNextUpdate) {
+                    _ignoreNextUpdate = false;
+                    return;
+                }
+
                 var data = snap.val();
-                if (data !== null) {
-                    // Firebase tem dados — usa do Firebase
-                    var remoteTarefas = Array.isArray(data) ? data : Object.values(data);
-                    // Merge: mantém tarefas locais que não existem no Firebase
-                    var localIds = new Set(remoteTarefas.map(function(t){ return t.id; }));
-                    var tarefasLocaisNaoSincronizadas = tarefas.filter(function(t){ return !localIds.has(t.id); });
-                    if (tarefasLocaisNaoSincronizadas.length > 0) {
-                        // Sobe tarefas locais para o Firebase
-                        tarefas = remoteTarefas.concat(tarefasLocaisNaoSincronizadas);
-                        fb.set(fb.ref(fb.db, userPath('tarefas')), tarefas).catch(function(){});
-                    } else {
-                        tarefas = remoteTarefas;
-                    }
-                } else if (tarefas.length > 0) {
-                    // Firebase vazio mas tem dados locais — sobe para o Firebase
-                    fb.set(fb.ref(fb.db, userPath('tarefas')), tarefas).catch(function(){});
+                var remoteVersion = data ? (data._syncVersion || 0) : 0;
+
+                if (data && remoteVersion > _syncVersion) {
+                    // Dados do Firebase são mais recentes
+                    var remoteTarefas = data.tarefas || [];
+                    tarefas = remoteTarefas.filter(function(t) { return !t._deleted; });
+                    _syncVersion = remoteVersion;
+
+                    localStorage.setItem('zentask_tarefas', JSON.stringify(tarefas));
+                    renderizar();
+                    atualizarStreak();
+                } else if (data === null && tarefas.length > 0) {
+                    // Firebase vazio mas temos dados locais - subir
+                    sincronizarParaFirebase();
                 }
-                localStorage.setItem('tarefasZenUltimate', JSON.stringify(tarefas));
-                renderizar();
-                atualizarStreak();
             });
 
-            fb.onValue(fb.ref(fb.db, userPath('categorias')), function(snap) {
+            // Categorias
+            _fb.onValue(_fb.ref(_fb.db, userPath('categorias')), function(snap) {
                 if (_ignoreNextUpdate) return;
                 var data = snap.val();
-                if (data !== null) {
-                    categorias = Array.isArray(data) ? data : Object.values(data);
-                    localStorage.setItem('categoriasZenUltimate', JSON.stringify(categorias));
+                if (data && Array.isArray(data)) {
+                    categorias = data;
+                    localStorage.setItem('zentask_categorias', JSON.stringify(categorias));
                     renderizarCategorias();
                     renderizarCategoriasLista();
                     renderizarCategoryFilters();
                 }
             });
 
-            fb.onValue(fb.ref(fb.db, userPath('streak')), function(snap) {
+            // Streak
+            _fb.onValue(_fb.ref(_fb.db, userPath('streak')), function(snap) {
                 if (_ignoreNextUpdate) return;
                 var data = snap.val();
-                if (data !== null) {
+                if (data) {
                     streak = data;
-                    localStorage.setItem('streakZenUltimate', JSON.stringify(streak));
+                    localStorage.setItem('zentask_streak', JSON.stringify(streak));
                     renderizarStreak();
                 }
             });
         }
 
-        // Função para verificar e atualizar status de tarefas atrasadas
-        function verificarTarefasAtrasadas() {
-            var houveMudanca = false;
-            var now = new Date();
+        function userPath(subpath) {
+            return 'users/' + currentUser.uid + '/' + subpath;
+        }
 
-            tarefas.forEach(function(tarefa) {
-                if (!tarefa.concluida && tarefa.dataLimite) {
-                    var deadline = new Date(tarefa.dataLimite + 'T' + (tarefa.horaLimite || '23:59'));
-                    if (now > deadline) {
-                        // Tarefa esta atrasada
-                        if (!tarefa.atrasada) {
-                            tarefa.atrasada = true;
-                            houveMudanca = true;
-                        }
+        function sincronizarParaFirebase() {
+            if (!_fb || !currentUser) return;
+            _ignoreNextUpdate = true;
+            _syncVersion++;
+            _fb.set(_fb.ref(_fb.db, userPath('tarefas')), {
+                tarefas: tarefas,
+                _syncVersion: _syncVersion,
+                _lastSync: Date.now()
+            }).catch(function(e) {
+                console.warn('Sync error:', e);
+                _ignoreNextUpdate = false;
+            });
+        }
+
+        function setSyncStatus(state, text) {
+            var el = document.getElementById('syncStatus');
+            var lb = document.getElementById('syncLabel');
+            if (!el) return;
+            el.className = 'sync-status sync-' + state;
+            lb.textContent = text;
+        }
+
+        // ==========================================
+        //  PUSH NOTIFICATIONS - WEB PUSH API
+        // ==========================================
+        async function setupPushNotifications() {
+            if (!('Notification' in window)) return;
+
+            // Request permission on first interaction
+            document.addEventListener('click', async function() {
+                if (Notification.permission === 'default') {
+                    await Notification.requestPermission();
+                    if (Notification.permission === 'granted') {
+                        await subscribeToPush();
                     }
                 }
-            });
+            }, { once: true });
 
-            if (houveMudanca) {
-                salvar();
-                renderizar();
-                updateStats();
+            // Check permission periodically
+            if (Notification.permission === 'granted') {
+                await subscribeToPush();
             }
         }
 
+        async function subscribeToPush() {
+            if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+
+            try {
+                var registration = await navigator.serviceWorker.ready;
+                var subscription = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlBase64ToUint8Array(window.VAPID_PUBLIC_KEY)
+                });
+
+                pushSubscription = subscription;
+
+                // Send to server (se você tiver um backend)
+                console.log('Push subscription:', subscription.endpoint);
+
+            } catch (e) {
+                console.warn('Push subscription failed:', e);
+            }
+        }
+
+        function urlBase64ToUint8Array(base64String) {
+            var padding = '='.repeat((4 - base64String.length % 4) % 4);
+            var base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+            var rawData = window.atob(base64);
+            var outputArray = new Uint8Array(rawData.length);
+            for (var i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            return outputArray;
+        }
+
+        // ==========================================
+        //  EVENT LISTENERS
+        // ==========================================
         function setupEventListeners() {
-            // Botão de adicionar tarefa
             btn.addEventListener('click', adicionarTarefa);
+            input.addEventListener('keypress', function(e) { if (e.key === 'Enter') adicionarTarefa(); });
 
-            // Tecla Enter para adicionar
-            input.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') adicionarTarefa();
-            });
-
-            // Botões de abas de filtro
             filterBtns.forEach(function(filterBtn) {
                 filterBtn.addEventListener('click', function() {
                     filterBtns.forEach(function(b) { b.classList.remove('active'); });
+                    document.querySelectorAll('.category-filter-btn').forEach(function(b) { b.classList.remove('active'); });
                     filterBtn.classList.add('active');
                     currentFilter = filterBtn.dataset.filter;
                     renderizar();
                 });
             });
 
-            // Botão gerenciar categorias
-            manageCategoriesBtnEl.addEventListener('click', function() {
-                categoryModalEl.classList.add('show');
-            });
-
-            // Fechar modal
-            closeModalBtnEl.addEventListener('click', function() {
-                categoryModalEl.classList.remove('show');
-            });
-
-            // Fechar modal ao clicar fora
-            categoryModalEl.addEventListener('click', function(e) {
-                if (e.target === categoryModalEl) {
-                    categoryModalEl.classList.remove('show');
-                }
-            });
-
-            // Adicionar nova categoria
+            manageCategoriesBtnEl.addEventListener('click', function() { categoryModalEl.classList.add('show'); });
+            closeModalBtnEl.addEventListener('click', function() { categoryModalEl.classList.remove('show'); });
+            categoryModalEl.addEventListener('click', function(e) { if (e.target === categoryModalEl) categoryModalEl.classList.remove('show'); });
             addCategoryBtnEl.addEventListener('click', adicionarCategoria);
+            newCategoryNameEl.addEventListener('keypress', function(e) { if (e.key === 'Enter') adicionarCategoria(); });
 
-            // Enter para adicionar categoria
-            newCategoryNameEl.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') adicionarCategoria();
-            });
-
-            // Som ao selecionar prioridade
             priorityOptions.forEach(function(option) {
-                option.addEventListener('change', function() {
-                    playSound('check');
-                });
+                option.addEventListener('change', function() { playSound('check'); });
             });
 
-            // Inicializar contexto de audio na primeira interacao
-            document.addEventListener('click', function() {
-                initAudioContext();
-            }, { once: true });
+            // Edit modal
+            closeEditEl.addEventListener('click', function() { editModalEl.classList.remove('show'); });
+            editModalEl.addEventListener('click', function(e) { if (e.target === editModalEl) editModalEl.classList.remove('show'); });
+            editSaveEl.addEventListener('click', salvarEdicao);
+
+            // Init audio
+            document.addEventListener('click', function() { initAudioContext(); }, { once: true });
         }
 
+        // ==========================================
+        //  CATEGORIAS
+        // ==========================================
         function adicionarCategoria() {
             var nome = newCategoryNameEl.value.trim();
             if (!nome) {
@@ -2781,22 +1464,20 @@ input[type="time"] {
             renderizarCategoryFilters();
             newCategoryNameEl.value = '';
             playSound('add');
-            mostrarToast('Categoria adicionada!', '&#9989;');
+            mostrarToast('Categoria adicionada!', 'success');
         }
 
         function removerCategoria(id) {
             if (categorias.length <= 1) {
-                mostrarToast('Você precisa ter pelo menos 1 categoria!', '&#9888;');
+                mostrarToast('Precisa ter pelo menos 1 categoria!', 'warning');
                 return;
             }
 
-            // Verificar se existem tarefas com esta categoria
             var tarefasComCategoria = tarefas.filter(function(t) { return t.categoria === id; });
             if (tarefasComCategoria.length > 0) {
-                if (!confirm('Esta categoria tem ' + tarefasComCategoria.length + ' tarefa(s). Deseja realmente exclui-la?')) {
+                if (!confirm('Esta categoria tem ' + tarefasComCategoria.length + ' tarefa(s). Excluir?')) {
                     return;
                 }
-                // Remover tarefas da categoria
                 tarefas = tarefas.filter(function(t) { return t.categoria !== id; });
                 salvar();
             }
@@ -2804,7 +1485,6 @@ input[type="time"] {
             categorias = categorias.filter(function(c) { return c.id !== id; });
             salvarCategorias();
 
-            // Selecionar primeira categoria se a atual foi removida
             if (selectedCategoryId === id && categorias.length > 0) {
                 selectedCategoryId = categorias[0].id;
             }
@@ -2814,65 +1494,43 @@ input[type="time"] {
             renderizarCategoryFilters();
             renderizar();
             playSound('delete');
-            mostrarToast('Categoria removida!', '&#128465;');
+            mostrarToast('Categoria removida!', 'delete');
         }
 
         function salvarCategorias() {
-            localStorage.setItem('categoriasZenUltimate', JSON.stringify(categorias));
-            var fb = getFirebase();
-            if (!fb || !firebaseConfigured || !currentUser) return;
-            try {
-                fb.set(fb.ref(fb.db, userPath('categorias')), categorias)
-                  .catch(function(e){ console.warn('Firebase write error:', e); });
-            } catch(e) { console.warn('Firebase error:', e); }
+            localStorage.setItem('zentask_categorias', JSON.stringify(categorias));
+            if (_fb && currentUser) {
+                _fb.set(_fb.ref(_fb.db, userPath('categorias')), categorias).catch(function(){});
+            }
         }
 
         function renderizarCategorias() {
             categoryOptionsEl.innerHTML = '';
-
             categorias.forEach(function(cat) {
                 var label = document.createElement('label');
                 label.className = 'category-option';
                 label.dataset.categoryId = cat.id;
-
                 label.innerHTML =
                     '<input type="radio" name="categoria" value="' + cat.id + '"' + (cat.id === selectedCategoryId ? ' checked' : '') + '>' +
-                    '<span class="category-tag" style="color: ' + cat.cor + '; border-color: ' + cat.cor + '20;">' +
-                        '<span>' + cat.nome + '</span>' +
-                    '</span>';
-
+                    '<span class="category-tag" style="color: ' + cat.cor + '; border-color: ' + cat.cor + '20;">' + cat.nome + '</span>';
                 label.querySelector('input').addEventListener('change', function() {
                     selectedCategoryId = cat.id;
                     renderizarCategorias();
                     playSound('check');
                 });
-
                 categoryOptionsEl.appendChild(label);
             });
         }
 
         function renderizarCategoriasLista() {
             categoryListEl.innerHTML = '';
-
             categorias.forEach(function(cat) {
                 var div = document.createElement('div');
                 div.className = 'category-list-item';
                 div.innerHTML =
-                    '<div class="cat-info">' +
-                        '<span class="cat-icon" style="font-size: 24px; color: ' + cat.cor + ';">&#9679;</span>' +
-                        '<span class="cat-name">' + cat.nome + '</span>' +
-                    '</div>' +
-                    '<button class="delete-cat-btn" data-id="' + cat.id + '" title="Excluir categoria">' +
-                        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">' +
-                            '<polyline points="3 6 5 6 21 6"/>' +
-                            '<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>' +
-                        '</svg>' +
-                    '</button>';
-
-                div.querySelector('.delete-cat-btn').addEventListener('click', function() {
-                    removerCategoria(cat.id);
-                });
-
+                    '<div class="cat-info"><span class="cat-icon" style="color: ' + cat.cor + ';">&#9679;</span><span class="cat-name">' + cat.nome + '</span></div>' +
+                    '<button class="delete-cat-btn" data-id="' + cat.id + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>';
+                div.querySelector('.delete-cat-btn').addEventListener('click', function() { removerCategoria(cat.id); });
                 categoryListEl.appendChild(div);
             });
         }
@@ -2880,39 +1538,42 @@ input[type="time"] {
         function renderizarCategoryFilters() {
             var container = document.getElementById('categoryFiltersContainer');
             container.innerHTML = '';
-
-            // Separador visual - linha vertical sutil
             var separator = document.createElement('div');
-            separator.style.cssText = 'width: 1px; height: 20px; background: #d0d0d0; margin: 0 6px; flex-shrink: 0; border-radius: 2px;';
+            separator.style.cssText = 'width: 1px; height: 20px; background: #d0d0d0; margin: 0 6px; flex-shrink: 0;';
             container.appendChild(separator);
-
             categorias.forEach(function(cat) {
                 var btn = document.createElement('button');
                 btn.className = 'category-filter-btn';
                 btn.dataset.categoryFilter = cat.id;
-                btn.innerHTML =
-                    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">' +
-                        '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>' +
-                    '</svg>' +
-                    '<span>' + cat.nome + '</span>';
-
+                btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span>' + cat.nome + '</span>';
                 btn.addEventListener('click', function() {
-                    // Remove active de todos os filtros
                     filterBtns.forEach(function(b) { b.classList.remove('active'); });
                     document.querySelectorAll('.category-filter-btn').forEach(function(b) { b.classList.remove('active'); });
-
                     btn.classList.add('active');
                     currentFilter = 'category-' + cat.id;
                     renderizar();
                 });
-
                 container.appendChild(btn);
             });
         }
 
+        // ==========================================
+        //  TAREFAS
+        // ==========================================
         function getSelectedPriority() {
             var selected = document.querySelector('input[name="prioridade"]:checked');
             return selected ? selected.value : 'verde';
+        }
+
+        function getHoraLimiteValue() {
+            return horaHHSelect.value + ':' + horaMMSelect.value;
+        }
+
+        function setHoraLimiteValue(val) {
+            if (!val) { horaHHSelect.value = '23'; horaMMSelect.value = '59'; return; }
+            var parts = val.split(':');
+            horaHHSelect.value = parts[0] || '23';
+            horaMMSelect.value = parts[1] || '59';
         }
 
         function adicionarTarefa() {
@@ -2922,9 +1583,6 @@ input[type="time"] {
                 return;
             }
 
-            var dataLimite = dataLimiteInput.value;
-            var horaLimite = getHoraLimiteValue();
-
             var tarefa = {
                 id: Date.now(),
                 texto: texto,
@@ -2932,9 +1590,10 @@ input[type="time"] {
                 prioridade: getSelectedPriority(),
                 categoria: selectedCategoryId,
                 createdAt: new Date().toISOString(),
-                dataLimite: dataLimite || null,
-                horaLimite: horaLimite || null,
-                completedAt: null
+                dataLimite: dataLimiteInput.value || null,
+                horaLimite: getHoraLimiteValue() || null,
+                completedAt: null,
+                updatedAt: new Date().toISOString()
             };
 
             tarefas.unshift(tarefa);
@@ -2944,7 +1603,7 @@ input[type="time"] {
             input.value = '';
             animateSuccess(btn);
             playSound('add');
-            mostrarToast('Tarefa adicionada!', '&#128221;');
+            mostrarToast('Tarefa adicionada!', 'add');
 
             input.focus();
         }
@@ -2953,27 +1612,20 @@ input[type="time"] {
             var tarefa = tarefas.find(function(t) { return t.id === id; });
             if (tarefa) {
                 var taskElement = document.querySelector('[data-id="' + id + '"]');
-
                 tarefa.concluida = !tarefa.concluida;
 
                 if (tarefa.concluida) {
                     tarefa.completedAt = new Date().toISOString();
-
-                    // Animacão especial de check
                     if (taskElement) {
                         taskElement.classList.add('checking');
-                        setTimeout(function() {
-                            taskElement.classList.remove('checking');
-                        }, 600);
+                        setTimeout(function() { taskElement.classList.remove('checking'); }, 600);
                     }
-
                     playSound('check');
                     atualizarStreak();
 
-                    // Verificar milestone
-                    if (streak.count === 7 || streak.count === 30 || streak.count === 100 || streak.count === 365) {
+                    if ([7, 30, 100, 365].includes(streak.count)) {
                         playSound('streak');
-                        mostrarToast('Incrivel! ' + streak.count + ' dias de sequencia!', '&#128293;');
+                        mostrarToast(streak.count + ' dias de sequencia!', 'streak');
                     }
                 } else {
                     tarefa.completedAt = null;
@@ -2981,6 +1633,7 @@ input[type="time"] {
                     atualizarStreak();
                 }
 
+                tarefa.updatedAt = new Date().toISOString();
                 salvar();
                 renderizar();
             }
@@ -2999,41 +1652,26 @@ input[type="time"] {
             }
         }
 
-        // ── Modal de edição ──────────────────────────────────────────────
-        var editModalEl = document.getElementById('editModal');
-        var editTextoEl = document.getElementById('editTexto');
-        var editDataEl  = document.getElementById('editData');
-        var editHHEl    = document.getElementById('editHH');
-        var editMMEl    = document.getElementById('editMM');
-        var editSaveEl  = document.getElementById('editSaveBtn');
-        var closeEditEl = document.getElementById('closeEditModal');
-        var editingId   = null;
+        function editarTarefa(id) {
+            var tarefa = tarefas.find(function(t) { return t.id === id; });
+            if (!tarefa) return;
 
-        // Populate edit hour/minute selects
-        (function() {
-            for (var h = 0; h < 24; h++) {
-                var o = document.createElement('option');
-                o.value = String(h).padStart(2,'0');
-                o.textContent = String(h).padStart(2,'0');
-                editHHEl.appendChild(o);
-            }
-            for (var m = 0; m < 60; m++) {
-                var o2 = document.createElement('option');
-                o2.value = String(m).padStart(2,'0');
-                o2.textContent = String(m).padStart(2,'0');
-                editMMEl.appendChild(o2);
-            }
-        })();
+            editingId = id;
+            editTextoEl.value = tarefa.texto;
+            editDataEl.value = tarefa.dataLimite || '';
 
-        closeEditEl.addEventListener('click', function() {
-            editModalEl.classList.remove('show');
-        });
+            var hora = (tarefa.horaLimite || '23:59').split(':');
+            editHHEl.value = hora[0] || '23';
+            editMMEl.value = hora[1] || '59';
 
-        editModalEl.addEventListener('click', function(e) {
-            if (e.target === editModalEl) editModalEl.classList.remove('show');
-        });
+            var prio = tarefa.prioridade || 'verde';
+            document.querySelector('input[name="editPrioridade"][value="' + prio + '"]').checked = true;
 
-        editSaveEl.addEventListener('click', function() {
+            editModalEl.classList.add('show');
+            setTimeout(function() { editTextoEl.focus(); }, 100);
+        }
+
+        function salvarEdicao() {
             if (!editingId) return;
             var tarefa = tarefas.find(function(t) { return t.id === editingId; });
             if (!tarefa) return;
@@ -3041,7 +1679,7 @@ input[type="time"] {
             var novoTexto = editTextoEl.value.trim();
             if (!novoTexto) { editTextoEl.focus(); return; }
 
-            tarefa.texto    = novoTexto;
+            tarefa.texto = novoTexto;
             tarefa.dataLimite = editDataEl.value || null;
             tarefa.horaLimite = editHHEl.value + ':' + editMMEl.value;
             var sel = document.querySelector('input[name="editPrioridade"]:checked');
@@ -3052,85 +1690,33 @@ input[type="time"] {
             renderizar();
             playSound('check');
             editModalEl.classList.remove('show');
-            mostrarToast('Tarefa atualizada!', '&#9999;');
-        });
-
-        function editarTarefa(id) {
-            var tarefa = tarefas.find(function(t) { return t.id === id; });
-            if (!tarefa) return;
-
-            editingId = id;
-            editTextoEl.value = tarefa.texto;
-            editDataEl.value  = tarefa.dataLimite || '';
-
-            var hora = (tarefa.horaLimite || '23:59').split(':');
-            editHHEl.value = hora[0] || '23';
-            editMMEl.value = hora[1] || '59';
-
-            var prio = tarefa.prioridade || 'verde';
-            var radioEl = document.querySelector('input[name="editPrioridade"][value="' + prio + '"]');
-            if (radioEl) radioEl.checked = true;
-
-            editModalEl.classList.add('show');
-            setTimeout(function() { editTextoEl.focus(); }, 100);
-        }
-
-        // ── Firebase helpers ─────────────────────────────────────────
-        var _fb = null;
-        var firebaseConfigured = false;
-        var currentUser = null;
-
-        function getFirebase() {
-            if (!_fb && window._firebase) {
-                _fb = window._firebase;
-                var scriptText = '';
-                document.querySelectorAll('script[type="module"]').forEach(function(s){ scriptText += s.textContent; });
-                firebaseConfigured = !scriptText.includes('SUA_API_KEY') && !scriptText.includes('SEU_PROJETO');
-            }
-            return _fb;
-        }
-
-        function userPath(subpath) {
-            return 'users/' + currentUser.uid + '/' + subpath;
-        }
-
-        function setSyncStatus(state, text) {
-            var el = document.getElementById('syncStatus');
-            var lb = document.getElementById('syncLabel');
-            if (!el) return;
-            el.className = 'sync-status sync-' + state;
-            lb.textContent = text;
+            mostrarToast('Tarefa atualizada!', 'edit');
         }
 
         function salvar() {
-            localStorage.setItem('tarefasZenUltimate', JSON.stringify(tarefas));
-            var fb = getFirebase();
-            if (!fb || !firebaseConfigured || !currentUser) return;
-            try {
-                fb.set(fb.ref(fb.db, userPath('tarefas')), tarefas)
-                  .catch(function(e){ console.warn('Firebase write error:', e); });
-            } catch(e) { console.warn('Firebase error:', e); }
+            localStorage.setItem('zentask_tarefas', JSON.stringify(tarefas));
+            if (_fb && currentUser) {
+                sincronizarParaFirebase();
+            }
         }
 
+        // ==========================================
+        //  STREAK
+        // ==========================================
         function atualizarStreak() {
             var hoje = new Date().toDateString();
             var ontem = new Date(Date.now() - 86400000).toDateString();
 
-            // Verificar se já completou tarefa hoje
             var tarefasConcluidasHoje = tarefas.filter(function(t) {
                 if (!t.concluida || !t.completedAt) return false;
                 return new Date(t.completedAt).toDateString() === hoje;
             });
 
             if (tarefasConcluidasHoje.length > 0) {
-                // Já completou tarefa hoje
                 if (streak.lastCompletionDate !== hoje) {
-                    // Primeira tarefa concluída hoje
                     if (streak.lastCompletionDate === ontem) {
-                        // Continuação da streak
                         streak.count++;
                     } else if (streak.lastCompletionDate !== hoje) {
-                        // Novo início de streak
                         streak.count = 1;
                     }
                     streak.lastCompletionDate = hoje;
@@ -3138,7 +1724,6 @@ input[type="time"] {
                 }
             }
 
-            // Verificar se a streak foi quebrada
             if (streak.lastCompletionDate && streak.lastCompletionDate !== hoje && streak.lastCompletionDate !== ontem) {
                 streak.count = 0;
                 salvarStreak();
@@ -3148,19 +1733,15 @@ input[type="time"] {
         }
 
         function salvarStreak() {
-            localStorage.setItem('streakZenUltimate', JSON.stringify(streak));
-            var fb = getFirebase();
-            if (!fb || !firebaseConfigured || !currentUser) return;
-            try {
-                fb.set(fb.ref(fb.db, userPath('streak')), streak)
-                  .catch(function(e){ console.warn('Firebase write error:', e); });
-            } catch(e) { console.warn('Firebase error:', e); }
+            localStorage.setItem('zentask_streak', JSON.stringify(streak));
+            if (_fb && currentUser) {
+                _fb.set(_fb.ref(_fb.db, userPath('streak')), streak).catch(function(){});
+            }
         }
 
         function renderizarStreak() {
             streakCountEl.textContent = streak.count;
 
-            // Atualizar status baseado na streak
             if (streak.count === 0) {
                 streakStatusEl.textContent = 'Comece sua sequencia!';
                 streakIconEl.innerHTML = '&#128164;';
@@ -3182,13 +1763,16 @@ input[type="time"] {
                 streakFireEl.classList.remove('level-100');
                 streakParticlesEl.classList.add('show');
             } else {
-                streakStatusEl.innerHTML = 'LEGENDARIO! &#127942;';
+                streakStatusEl.innerHTML = 'LEGENDARIO!';
                 streakIconEl.innerHTML = '&#128081;';
                 streakFireEl.classList.add('level-100');
                 streakParticlesEl.classList.add('show');
             }
         }
 
+        // ==========================================
+        //  RENDERIZAÇÃO
+        // ==========================================
         function updateStats() {
             var total = tarefas.length;
             var completed = tarefas.filter(function(t) { return t.concluida; }).length;
@@ -3230,7 +1814,6 @@ input[type="time"] {
             lista.innerHTML = '';
 
             var filteredTarefas = tarefas;
-
             if (currentFilter === 'pending') {
                 filteredTarefas = tarefas.filter(function(t) { return !t.concluida; });
             } else if (currentFilter === 'completed') {
@@ -3270,63 +1853,31 @@ input[type="time"] {
 
                 var categoria = categorias.find(function(c) { return c.id === tarefa.categoria; }) || categorias[0];
                 var priority = priorityLabels[tarefa.prioridade] || priorityLabels.verde;
-                var createdDate = formatDateTime(tarefa.createdAt);
-
-                var prazoTexto = '';
-                if (tarefa.dataLimite) {
-                    prazoTexto = formatDeadline(tarefa.dataLimite, tarefa.horaLimite);
-                }
-
+                var prazoTexto = tarefa.dataLimite ? formatDeadline(tarefa.dataLimite, tarefa.horaLimite) : '';
                 var overdueClass = isOverdue(tarefa) ? 'overdue' : '';
 
                 li.innerHTML =
                     '<label class="zen-checkbox">' +
                         '<input type="checkbox"' + (tarefa.concluida ? ' checked' : '') + '>' +
-                        '<span class="zen-checkmark">' +
-                            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">' +
-                                '<path d="M20 6L9 17l-5-5"/>' +
-                            '</svg>' +
-                        '</span>' +
+                        '<span class="zen-checkmark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>' +
                     '</label>' +
                     '<div class="zen-task-content">' +
                         '<span class="zen-task-text">' + escapeHtml(tarefa.texto) + '</span>' +
                         '<div class="zen-task-meta">' +
-                            '<span class="zen-category-badge" style="background: ' + categoria.cor + '20; color: ' + categoria.cor + ';">' +
-                                categoria.nome +
-                            '</span>' +
-                            '<span class="zen-priority-badge ' + priority.class + '">' +
-                                priority.label +
-                            '</span>' +
-                            '<span class="zen-task-date ' + overdueClass + '">' +
-                                createdDate +
-                            '</span>' +
-                            (prazoTexto ? '<span class="zen-task-date ' + overdueClass + '">' +
-                                prazoTexto +
-                            '</span>' : '') +
+                            '<span class="zen-category-badge" style="background: ' + categoria.cor + '20; color: ' + categoria.cor + ';">' + categoria.nome + '</span>' +
+                            '<span class="zen-priority-badge ' + priority.class + '">' + priority.label + '</span>' +
+                            '<span class="zen-task-date ' + overdueClass + '">' + formatDateTime(tarefa.createdAt) + '</span>' +
+                            (prazoTexto ? '<span class="zen-task-date ' + overdueClass + '">' + prazoTexto + '</span>' : '') +
                         '</div>' +
                     '</div>' +
                     '<div class="zen-task-actions">' +
-                        '<button class="zen-task-btn zen-edit-btn" title="Editar">' +
-                            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
-                                '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>' +
-                                '<path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>' +
-                            '</svg>' +
-                        '</button>' +
-                        '<button class="zen-task-btn zen-delete-btn" title="Excluir">' +
-                            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
-                                '<polyline points="3 6 5 6 21 6"/>' +
-                                '<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>' +
-                            '</svg>' +
-                        '</button>' +
+                        '<button class="zen-task-btn zen-edit-btn" title="Editar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>' +
+                        '<button class="zen-task-btn zen-delete-btn" title="Excluir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>' +
                     '</div>';
 
-                var checkbox = li.querySelector('input[type="checkbox"]');
-                var editBtn = li.querySelector('.zen-edit-btn');
-                var deleteBtn = li.querySelector('.zen-delete-btn');
-
-                checkbox.addEventListener('change', function() { toggleTarefa(tarefa.id); });
-                editBtn.addEventListener('click', function() { editarTarefa(tarefa.id); });
-                deleteBtn.addEventListener('click', function() { deletarTarefa(tarefa.id); });
+                li.querySelector('input[type="checkbox"]').addEventListener('change', function() { toggleTarefa(tarefa.id); });
+                li.querySelector('.zen-edit-btn').addEventListener('click', function() { editarTarefa(tarefa.id); });
+                li.querySelector('.zen-delete-btn').addEventListener('click', function() { deletarTarefa(tarefa.id); });
 
                 lista.appendChild(li);
             });
@@ -3345,13 +1896,7 @@ input[type="time"] {
             if (diff < 172800000) {
                 return 'Ontem ' + date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
             }
-
-            return date.toLocaleDateString('pt-BR', {
-                day: '2-digit',
-                month: 'short',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
+            return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
         }
 
         function formatDeadline(dataLimite, horaLimite) {
@@ -3359,22 +1904,10 @@ input[type="time"] {
             var now = new Date();
             var diff = date - now;
 
-            if (diff < 0) {
-                return 'Atrasado!';
-            }
-
+            if (diff < 0) return 'Atrasado!';
             var days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
-            if (days === 0) {
-                return 'Para hoje ' + (horaLimite || '');
-            }
-            if (days === 1) {
-                return 'Para amanha';
-            }
-            if (days < 7) {
-                return 'Em ' + days + ' dias';
-            }
-
+            if (days === 0) return 'Para hoje ' + (horaLimite || '');
+            if (days === 1) return 'Para amanha';
             return 'Em ' + days + ' dias';
         }
 
@@ -3386,144 +1919,120 @@ input[type="time"] {
 
         function animateSuccess(element) {
             element.style.transform = 'scale(1.06)';
-            setTimeout(function() {
-                element.style.transform = 'scale(1)';
-            }, 200);
+            setTimeout(function() { element.style.transform = 'scale(1)'; }, 200);
         }
 
         function shakeElement(element) {
             element.style.animation = 'zenShake 0.5s ease';
             element.style.borderColor = '#f87171';
-            setTimeout(function() {
-                element.style.animation = '';
-                element.style.borderColor = '';
-            }, 500);
+            setTimeout(function() { element.style.animation = ''; element.style.borderColor = ''; }, 500);
         }
 
-        function mostrarToast(mensagem, icone) {
-            var toast = document.getElementById('toast');
-            var toastMessage = document.getElementById('toastMessage');
-            var toastIcon = document.getElementById('toastIcon');
+        // ==========================================
+        //  NOTIFICAÇÕES PUSH - MELHORADO
+        // ==========================================
+        var notificacoesEnviadas = JSON.parse(localStorage.getItem('zentask_notificacoes') || '{}');
 
-            toastMessage.textContent = mensagem;
-            toastIcon.innerHTML = icone;
-            toast.classList.add('show');
-
-            setTimeout(function() {
-                toast.classList.remove('show');
-            }, 3000);
+        function salvarNotificacoes() {
+            localStorage.setItem('zentask_notificacoes', JSON.stringify(notificacoesEnviadas));
         }
 
-        // ══════════════════════════════════════════════════
-        //  SISTEMA DE NOTIFICAÇÕES DE PRAZO
-        // ══════════════════════════════════════════════════
-        var notificacoesEnviadas = JSON.parse(localStorage.getItem('zenNotificacoes') || '{}');
+        function verificarTarefasAtrasadas() {
+            var houveMudanca = false;
+            var now = new Date();
 
-        function salvarNotificacoesEnviadas() {
-            localStorage.setItem('zenNotificacoes', JSON.stringify(notificacoesEnviadas));
+            tarefas.forEach(function(tarefa) {
+                if (!tarefa.concluida && tarefa.dataLimite) {
+                    var deadline = new Date(tarefa.dataLimite + 'T' + (tarefa.horaLimite || '23:59'));
+                    if (now > deadline && !tarefa.atrasada) {
+                        tarefa.atrasada = true;
+                        houveMudanca = true;
+                    }
+                }
+            });
+
+            if (houveMudanca) {
+                salvar();
+                renderizar();
+                updateStats();
+            }
         }
 
-        function verificarNotificacoesPrazo() {
-            if (!currentUser || !currentUser.email) return;
+        function verificarPushNotifications() {
+            if (!currentUser) return;
             var agora = new Date();
 
             tarefas.forEach(function(tarefa) {
                 if (tarefa.concluida || !tarefa.dataLimite) return;
 
-                var prazo    = new Date(tarefa.dataLimite + 'T' + (tarefa.horaLimite || '23:59'));
-                var criadaEm = new Date(tarefa.createdAt);
-                var diffPrazo   = prazo - agora;      // ms até o prazo
-                var idadeTarefa = agora - criadaEm;   // ms desde criação
+                var prazo = new Date(tarefa.dataLimite + 'T' + (tarefa.horaLimite || '23:59'));
+                var diffPrazo = prazo - agora;
 
-                if (diffPrazo < 0) return; // já atrasada
+                if (diffPrazo < 0) return;
 
-                var MS_1DIA  = 24 * 60 * 60 * 1000;
+                var MS_1DIA = 24 * 60 * 60 * 1000;
                 var MS_1HORA = 60 * 60 * 1000;
-                var MS_10MIN = 10 * 60 * 1000;
+                var MS_30MIN = 30 * 60 * 1000;
 
                 var tipoNotif = null;
 
-                // Situação 1: criada há +2 dias, falta ≤1 dia e >1h
-                if (idadeTarefa >= 2 * MS_1DIA && diffPrazo <= MS_1DIA && diffPrazo > MS_1HORA) {
+                if (diffPrazo <= MS_1DIA && diffPrazo > MS_1HORA) {
                     tipoNotif = '1dia';
-                }
-                // Situação 2: criada há +24h, falta ≤1h e >10min
-                else if (idadeTarefa >= MS_1DIA && diffPrazo <= MS_1HORA && diffPrazo > MS_10MIN) {
+                } else if (diffPrazo <= MS_1HORA && diffPrazo > MS_30MIN) {
                     tipoNotif = '1hora';
-                }
-                // Situação 3: criada há +1h, falta ≤10min
-                else if (idadeTarefa >= MS_1HORA && diffPrazo <= MS_10MIN) {
-                    tipoNotif = '10min';
+                } else if (diffPrazo <= MS_30MIN) {
+                    tipoNotif = '30min';
                 }
 
                 if (!tipoNotif) return;
 
                 var chave = tarefa.id + '_' + tipoNotif;
-                if (notificacoesEnviadas[chave]) return; // já notificou
+                if (notificacoesEnviadas[chave]) return;
 
                 notificacoesEnviadas[chave] = true;
-                salvarNotificacoesEnviadas();
-                dispararNotificacao(tarefa, tipoNotif, prazo);
+                salvarNotificacoes();
+                dispararPushNotification(tarefa, tipoNotif, prazo);
             });
         }
 
-        function dispararNotificacao(tarefa, tipo, prazo) {
+        function dispararPushNotification(tarefa, tipo, prazo) {
             var msgs = {
-                '1dia' : '⏰ Falta 1 dia para o prazo!',
-                '1hora': '🚨 Falta apenas 1 hora para o prazo!',
-                '10min': '🔴 URGENTE: Faltam 10 minutos para o prazo!'
+                '1dia': 'Falta 1 dia para o prazo!',
+                '1hora': 'Falta apenas 1 hora!',
+                '30min': 'Urgente: Faltam 30 minutos!'
             };
             var msg = msgs[tipo];
-            var prazoFormatado = prazo.toLocaleString('pt-BR', {
-                day:'2-digit', month:'2-digit', year:'numeric',
-                hour:'2-digit', minute:'2-digit'
-            });
 
-            // Toast no app
-            mostrarToast(msg + ' ' + tarefa.texto.substring(0, 25) + (tarefa.texto.length > 25 ? '...' : ''), '⏰');
+            // Toast
+            mostrarToast(msg + ' ' + tarefa.texto.substring(0, 20) + (tarefa.texto.length > 20 ? '...' : ''), 'bell');
 
-            // Notificação nativa do browser
+            // Web Push Notification
             if ('Notification' in window && Notification.permission === 'granted') {
-                new Notification('ZenTask Pro — ' + msg, {
-                    body: tarefa.texto + '\nPrazo: ' + prazoFormatado,
+                new Notification('ZenTask Pro - ' + msg, {
+                    body: tarefa.texto,
+                    tag: 'zentask-' + tarefa.id,
+                    requireInteraction: tipo === '30min',
                     icon: 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'12\' fill=\'%238b5cf6\'/%3E%3C/svg%3E'
                 });
             }
 
-            // Email real via EmailJS
-            if (currentUser && currentUser.email &&
-                window.EMAILJS_PUBLIC_KEY !== 'SUA_PUBLIC_KEY') {
-                try {
-                    emailjs.init({ publicKey: window.EMAILJS_PUBLIC_KEY });
-                    emailjs.send(window.EMAILJS_SERVICE_ID, window.EMAILJS_TEMPLATE_ID, {
-                        to_email:   currentUser.email,
-                        to_name:    currentUser.displayName || currentUser.email,
-                        task_name:  tarefa.texto,
-                        deadline:   prazoFormatado,
-                        category:   tarefa.categoria,
-                        priority:   (tarefa.prioridade === 'vermelha' ? 'Alta' : tarefa.prioridade === 'amarela' ? 'Média' : 'Baixa'),
-                        alert_type: msg
-                    }).catch(function(err) {
-                        console.warn('EmailJS error:', err);
-                    });
-                } catch(e) {
-                    console.warn('EmailJS not configured:', e);
-                }
+            // Push via Service Worker
+            if (pushSubscription) {
+                var payload = JSON.stringify({
+                    title: 'ZenTask Pro - ' + msg,
+                    body: tarefa.texto,
+                    tag: 'zentask-' + tarefa.id,
+                    priority: tipo === '30min' ? 'high' : 'normal'
+                });
+                fetch(pushSubscription.endpoint, {
+                    method: 'POST',
+                    headers: pushSubscription.keys,
+                    body: payload
+                }).catch(function() {});
             }
         }
 
-        // Pede permissão de notificação na primeira interação
-        document.addEventListener('click', function() {
-            if ('Notification' in window && Notification.permission === 'default') {
-                Notification.requestPermission();
-            }
-        }, { once: true });
-
-        // Verifica notificações a cada minuto
-        setInterval(verificarNotificacoesPrazo, 60 * 1000);
-
-        // Limpa notificações de tarefas concluídas/removidas (a cada hora)
-        setInterval(function() {
+        function limparNotificacoesAntigas() {
             var remover = [];
             Object.keys(notificacoesEnviadas).forEach(function(k) {
                 var id = parseInt(k.split('_')[0]);
@@ -3531,12 +2040,97 @@ input[type="time"] {
                 if (!t || t.concluida) remover.push(k);
             });
             remover.forEach(function(k) { delete notificacoesEnviadas[k]; });
-            if (remover.length) salvarNotificacoesEnviadas();
-        }, 60 * 60 * 1000);
+            if (remover.length) salvarNotificacoes();
+        }
 
+        // ==========================================
+        //  TOAST
+        // ==========================================
+        function mostrarToast(mensagem, tipo) {
+            var toast = document.getElementById('toast');
+            var toastMessage = document.getElementById('toastMessage');
+            var toastIcon = document.getElementById('toastIcon');
+
+            var icons = {
+                'success': '&#10004;',
+                'add': '&#10004;',
+                'delete': '&#10004;',
+                'edit': '&#9999;',
+                'warning': '&#9888;',
+                'bell': '&#128276;',
+                'streak': '&#128293;'
+            };
+
+            toastMessage.textContent = mensagem;
+            toastIcon.innerHTML = icons[tipo] || '&#128276;';
+            toast.classList.add('show');
+
+            setTimeout(function() {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // ==========================================
+        //  AUDIO
+        // ==========================================
+        function initAudioContext() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            return audioContext;
+        }
+
+        function playSound(type) {
+            try {
+                var ctx = initAudioContext();
+                if (ctx.state === 'suspended') ctx.resume();
+
+                var osc = ctx.createOscillator();
+                var gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                switch(type) {
+                    case 'add':
+                        osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+                        osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1);
+                        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                        osc.start(ctx.currentTime);
+                        osc.stop(ctx.currentTime + 0.3);
+                        break;
+                    case 'check':
+                        osc.frequency.setValueAtTime(392, ctx.currentTime);
+                        osc.frequency.setValueAtTime(523.25, ctx.currentTime + 0.1);
+                        osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.2);
+                        osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.3);
+                        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+                        osc.start(ctx.currentTime);
+                        osc.stop(ctx.currentTime + 0.5);
+                        break;
+                    case 'delete':
+                        osc.frequency.setValueAtTime(440, ctx.currentTime);
+                        osc.frequency.exponentialRampToValueAtTime(110, ctx.currentTime + 0.3);
+                        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                        osc.start(ctx.currentTime);
+                        osc.stop(ctx.currentTime + 0.3);
+                        break;
+                    case 'streak':
+                        osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+                        osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.15);
+                        osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.3);
+                        osc.frequency.setValueAtTime(1046.50, ctx.currentTime + 0.45);
+                        gain.gain.setValueAtTime(0.4, ctx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.7);
+                        osc.start(ctx.currentTime);
+                        osc.stop(ctx.currentTime + 0.7);
+                        break;
+                }
+            } catch(e) {}
+        }
     })();
     </script>
-
-
 </body>
 </html>
