@@ -84,7 +84,7 @@
                     </svg>
                 </div>
                 <div class="header-title">
-                    <h1>ZenTask <span>Pro</span></h1>
+                    <h1>ZenTask</h1>
                     <p>Organize suas tarefas com serenidade</p>
                 </div>
             </div>
@@ -132,27 +132,6 @@
                 <button class="logout-btn" id="logoutBtn">Sair</button>
             </div>
 
-            <!-- Botão de Instalação PWA Melhorado -->
-            <div class="pwa-install-section" id="pwaInstallSection">
-                <button class="pwa-install-btn" id="pwaInstallBtn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
-                    </svg>
-                    <span id="pwaInstallText">Instalar App</span>
-                </button>
-                <div class="pwa-install-info" id="pwaInstallInfo">
-                    <small>Funciona offline e sincroniza automaticamente</small>
-                </div>
-            </div>
-
-            <!-- Botão Baixar App Mobile -->
-            <button class="download-mobile-btn" id="downloadMobileBtn">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
-                </svg>
-                Baixar App Mobile
-            </button>
-
             <!-- Botão Gerenciar Categorias -->
             <button class="manage-categories-btn" id="manageCategoriesBtn">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
@@ -173,72 +152,6 @@
                 <div class="add-category-form">
                     <input type="text" id="newCategoryName" placeholder="Digite o nome da nova categoria...">
                     <button id="addCategoryBtn">Adicionar Categoria</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- MODAL DE DOWNLOAD DO APP MOBILE -->
-        <div class="mobile-download-modal" id="mobileDownloadModal">
-            <div class="mobile-download-content">
-                <div class="mobile-download-header">
-                    <h2>ZenTask Mobile</h2>
-                    <button class="close-modal-btn" id="closeMobileModalBtn">X</button>
-                </div>
-                <div class="mobile-download-body">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="64" height="64" style="margin: 0 auto; display: block; color: var(--zen-primary);">
-                        <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
-                        <line x1="12" y1="18" x2="12" y2="18"/>
-                    </svg>
-                    <h3 style="text-align: center; margin-top: 16px;">Sincronize suas tarefas no celular</h3>
-                    <p style="text-align: center; color: var(--zen-text-secondary);">Acesse suas tarefas de qualquer lugar com o app mobile nativo. Todas as suas tarefas, categorias e streaks sincronizam em tempo real.</p>
-                    
-                    <div class="mobile-features">
-                        <div class="feature">
-                            <span class="feature-icon">📱</span>
-                            <span class="feature-text">Interface otimizada para toque</span>
-                        </div>
-                        <div class="feature">
-                            <span class="feature-icon">🔔</span>
-                            <span class="feature-text">Notificações nativas do celular</span>
-                        </div>
-                        <div class="feature">
-                            <span class="feature-icon">🔄</span>
-                            <span class="feature-text">Sincronização em tempo real</span>
-                        </div>
-                        <div class="feature">
-                            <span class="feature-icon">⚡</span>
-                            <span class="feature-text">Funciona offline</span>
-                        </div>
-                    </div>
-
-                    <div class="mobile-instructions">
-                        <h4>🚀 Como rodar no celular:</h4>
-                        <ol>
-                            <li>Baixe o app <strong>Expo Go</strong> na Play Store ou App Store.</li>
-                            <li>No computador, dentro da sua pasta do projeto Expo, rode o comando: <code>npx expo start</code></li>
-                            <li>Um <strong>QR Code</strong> aparecerá no seu terminal.</li>
-                            <li>Abra o <strong>Expo Go</strong> no celular e escaneie esse QR Code.</li>
-                            <li>O app ZenTask abrirá e sincronizará em tempo real com este site!</li>
-                        </ol>
-                    </div>
-
-                    <div class="mobile-links">
-                        <button class="mobile-link-btn" id="copyInviteBtn">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-                                <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
-                            </svg>
-                            Copiar Link de Convite
-                        </button>
-                        <a href="https://expo.dev" target="_blank" class="mobile-link-btn" style="text-decoration: none;">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                                <polyline points="15 3 21 3 21 9"/>
-                                <line x1="10" y1="14" x2="21" y2="3"/>
-                            </svg>
-                            Baixar Expo Go
-                        </a>
-                    </div>
                 </div>
             </div>
         </div>
@@ -464,7 +377,7 @@
                     </label>
                 </div>
             </div>
-            <button class="edit-save-btn" id="editSaveBtn">Salvar Alterações</button>
+            <button class="edit-save-btn" id="editSaveBtn">Salvar Alteracoes</button>
         </div>
     </div>
 
@@ -693,18 +606,6 @@ body {
 .logout-btn:hover { background: var(--zen-red); color: white; }
 
 /* MANAGE CATEGORIES */
-/* DOWNLOAD MOBILE BUTTON */
-.download-mobile-btn {
-    display: flex; align-items: center; justify-content: center;
-    gap: 8px; margin-top: 12px; padding: 10px 18px;
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    border: none; border-radius: 20px; color: white;
-    font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(16,185,129,0.3);
-}
-.download-mobile-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16,185,129,0.4); }
-.download-mobile-btn:active { transform: scale(0.98); }
-
 .manage-categories-btn {
     display: flex; align-items: center; justify-content: center;
     gap: 8px; margin-top: 12px; padding: 8px 16px;
@@ -718,29 +619,6 @@ body {
 .category-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
 .category-modal.show { display: flex; }
 .category-modal-content { background: var(--zen-card); border-radius: 24px; padding: 24px; max-width: 400px; width: 100%; max-height: 80vh; overflow-y: auto; }
-
-/* MODAL DOWNLOAD MOBILE */
-.mobile-download-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
-.mobile-download-modal.show { display: flex; }
-.mobile-download-content { background: var(--zen-card); border-radius: 24px; padding: 24px; max-width: 450px; width: 100%; max-height: 90vh; overflow-y: auto; }
-.mobile-download-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-.mobile-download-header h2 { font-size: 18px; font-weight: 700; }
-.mobile-download-body { display: flex; flex-direction: column; gap: 16px; }
-
-.mobile-features { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
-.feature { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px; background: var(--zen-bg-warm); border-radius: 12px; text-align: center; }
-.feature-icon { font-size: 24px; }
-.feature-text { font-size: 12px; font-weight: 500; color: var(--zen-text-secondary); }
-
-.mobile-instructions { background: var(--zen-bg-warm); padding: 16px; border-radius: 12px; }
-.mobile-instructions h4 { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
-.mobile-instructions ol { font-size: 13px; padding-left: 20px; line-height: 1.8; color: var(--zen-text); }
-.mobile-instructions li { margin-bottom: 6px; }
-
-.mobile-links { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
-.mobile-link-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 16px; background: var(--zen-primary); color: white; border: none; border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
-.mobile-link-btn:hover { background: var(--zen-primary-dark); transform: translateY(-1px); }
-.mobile-link-btn:active { transform: scale(0.98); }
 .category-modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
 .category-modal-header h2 { font-size: 18px; font-weight: 700; }
 .close-modal-btn { width: 32px; height: 32px; border: none; background: var(--zen-bg-warm); border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--zen-text-secondary); transition: all 0.3s ease; }
@@ -1528,25 +1406,6 @@ body {
                     filterBtn.classList.add('active');
                     currentFilter = filterBtn.dataset.filter;
                     renderizar();
-                });
-            });
-
-            // Mobile Download Modal
-            var downloadMobileBtnEl = document.getElementById('downloadMobileBtn');
-            var mobileDownloadModalEl = document.getElementById('mobileDownloadModal');
-            var closeMobileModalBtnEl = document.getElementById('closeMobileModalBtn');
-            var copyInviteBtnEl = document.getElementById('copyInviteBtn');
-
-            downloadMobileBtnEl.addEventListener('click', function() { mobileDownloadModalEl.classList.add('show'); });
-            closeMobileModalBtnEl.addEventListener('click', function() { mobileDownloadModalEl.classList.remove('show'); });
-            mobileDownloadModalEl.addEventListener('click', function(e) { if (e.target === mobileDownloadModalEl) mobileDownloadModalEl.classList.remove('show'); });
-            
-            copyInviteBtnEl.addEventListener('click', function() {
-                var inviteLink = 'https://expo.dev/@seu-usuario/zentask-mobile';
-                navigator.clipboard.writeText(inviteLink).then(function() {
-                    mostrarToast('Link copiado para a area de transferencia!', 'success');
-                }).catch(function() {
-                    alert('Link: ' + inviteLink);
                 });
             });
 
